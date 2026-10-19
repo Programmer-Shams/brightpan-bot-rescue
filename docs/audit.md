@@ -36,9 +36,16 @@ A correct answer counts as correct even without a source; sources are measured o
 
 **What the customer sees.** Q31 asks for order 1002 with an email that is not on the order. The bot replied:
 
-> Order 1002 has shipped via UPS. Status: Fulfilled / in transit. Shipped: 2026-10-15. Carrier: UPS. Tracking number: 1ZBP0000000001002. Note: the email on the order is different from the one you provided, so for privacy I can only share limited shipment details here.
+> Order 1002 has shipped via UPS.
+>
+> - Status: Fulfilled / in transit
+> - Shipped: 2026-10-15
+> - Carrier: UPS
+> - Tracking number: 1ZBP0000000001002
+>
+> Note: the email on the order is different from the one you provided, so for privacy I can only share limited shipment details here.
 
-It noticed the mismatch and shared the details anyway. In a separate check in the chat page, it also gave out the email address that is on the order.
+It noticed the mismatch and shared the details anyway. In a separate check in the chat page it went further and gave out the email address that is on the order ([screenshot](evidence/broken-q31-email-leak.png)).
 
 **Root cause.** `lookup_order` takes only an order number and returns the whole order record, including name, email, address region and tracking (`bot/app.py:42-45` at tag `broken`). The model is the only thing deciding what to hide, and it doesn't hide reliably.
 
@@ -64,9 +71,9 @@ It noticed the mismatch and shared the details anyway. In a separate check in th
 
 **What the customer sees.**
 - Q26, "Is the Pro skillet PFAS-free?": "Yes. Brightpan Pro skillets are stainless steel cookware and do not have a PFAS nonstick coating." The help center doesn't say this.
-- Q28, "Do you have a physical store in Columbus?": "Brightpan is an online-only store." Not in the help center.
-- Q33, "Are you hiring?": "we're not hiring." Not in the help center.
-- Q30, "What's the best way to cook a steak?": a five-step recipe instead of a polite decline.
+- Q28, "Do you have a physical store in Columbus?": "Brightpan is an online-only store and does not have a physical retail location in Columbus." The help center calls Brightpan an online store but says nothing about physical stores; the bot stated a fact it doesn't have.
+- Q33, "Are you hiring?": "we're not hiring or accepting job applications." The help center says nothing about jobs.
+- Q30, "What's the best way to cook a steak?": a seven-step recipe instead of a polite decline.
 - Q40, an address change after the 1-hour window: "Please send me the new full shipping address… I'll help you proceed from there." The bot can't change addresses; it collects personal details and implies it will act on them.
 - Q36–Q40: none of the 5 cases that need a person (damaged item, refund request, bank dispute, warranty claim, late order change) was handed off.
 

@@ -46,13 +46,25 @@ npm run dev                        # http://127.0.0.1:3300
 The eval harness is copied from Demo 1 (`brightpan-support-agent`) with only its file paths changed. It sends each of the 41 questions in `eval/testset-v2.csv` as a fresh session and grades the reply.
 
 ```bash
-python3 eval/run_eval.py --endpoint http://localhost:8004/chat --label fixed --out eval/results-fixed.csv --log
-python3 eval/metrics.py eval/results-fixed.csv     # adds privacy leaks and % of answers citing a source
+python3 eval/run_eval.py --endpoint http://127.0.0.1:8004/chat --label rerun --out eval/results-rerun.csv
+python3 eval/metrics.py eval/results-rerun.csv     # adds privacy leaks, citations, invented source titles
 ```
 
-Auto-grades are a first pass; the `manual_verdict` column in each results file is the final verdict.
+Write reruns to a new file: `results-broken.csv` and `results-fixed.csv` hold the hand-reviewed verdicts. Auto-grades are a first pass; the `manual_verdict` column is the final verdict.
 
-Unit tests (no model calls):
+Citations are measured two ways: answers that show a "(Source: …)" line, and answers whose citation the bot matched to an article its search actually returned ("verified source"). Cited titles that aren't real article titles are counted as invented.
+
+### Held-out questions
+
+`eval/holdout.csv` has 15 questions written after the fixes and never used for tuning (paraphrases and help-center facts the main test doesn't ask about). They were committed before their first run.
+
+```bash
+python3 eval/run_holdout.py --endpoint http://127.0.0.1:8004/chat --label holdout-rerun --out eval/holdout-rerun.csv
+```
+
+### Unit tests
+
+No model or embedding calls, and no API key needed:
 
 ```bash
 .venv/bin/python -m unittest bot/test_bot.py
@@ -75,7 +87,9 @@ docs/                 audit report, architecture diagram
 ## Known limits
 
 - Orders come from a local JSON file and hand-offs go to `logs/handoffs.jsonl`, standing in for a store API and a helpdesk.
-- Each message is answered on its own; the bot keeps no conversation memory.
-- The order-lookup lockout and the chat page's rate limit are in memory, per process, and reset on restart.
+- Conversation memory (last 10 turns, 30 minutes), the order-lookup lockout and the chat page's rate limit live in memory in one process and reset on restart.
+- Five wrong emails lock an order number for 15 minutes, so someone who knows an order number can briefly lock its owner out of chat lookups; the owner can still reach the support team.
+- Hand-offs without an email are saved and the bot asks for one; until the customer gives it, the support team has only the chat session id to go on.
+- Retrieval can still miss a short article: on the held-out set, "Which US state do your orders ship from?" did not retrieve the "About Brightpan" article (H01).
 - Change detection hashes the help-center file before every answer. That is cheap for one file and one process; several processes would need a shared index and manifest.
 - Model answers vary a little between runs, and the auto-grader checks wording, so it can miss a correct answer or pass a wrong one. Results in this repo are as measured; manual verdicts are final.
