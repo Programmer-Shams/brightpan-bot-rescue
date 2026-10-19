@@ -38,11 +38,36 @@ def search_help_center(query: str) -> str:
     return docs[0].page_content if docs else "No results."
 
 
+# What a verified customer may see about their own order: no name, email or address.
+ORDER_FIELDS = ("order_number", "created", "fulfillment_status", "financial_status", "carrier", "tracking_number",
+                "shipped_date", "delivered_date", "country", "subtotal", "shipping", "note")
+ITEM_FIELDS = ("title", "qty", "status", "final_sale")
+NO_MATCH = json.dumps({"result": "no_match", "message": "No order matches that order number and email. Share no "
+                       "order details; ask the customer to check both and try again."})
+LOCKED = json.dumps({"result": "locked", "message": "Too many failed attempts for this order number. Share no order "
+                     "details; ask the customer to contact the support team."})
+MAX_FAILED_LOOKUPS, LOCKOUT_SECONDS = 5, 15 * 60
+failed_lookups: dict[str, list[float]] = {}
+
+
 @tool
-def lookup_order(order_number: str) -> str:
-    """Look up a Brightpan order by its order number."""
-    order = ORDERS.get(order_number.strip().lstrip("#"))
-    return json.dumps(order) if order else "Order not found."
+def lookup_order(order_number: str, email: str) -> str:
+    """Look up a Brightpan order. Needs the order number AND the email address used at checkout, both exactly as
+    the customer wrote them. If the customer hasn't given both, ask for the missing one instead of calling this."""
+    number = order_number.strip().lstrip("#")
+    now = time.time()
+    recent = [t for t in failed_lookups.get(number, []) if now - t < LOCKOUT_SECONDS]
+    if len(recent) >= MAX_FAILED_LOOKUPS:
+        return LOCKED
+    order = ORDERS.get(number)
+    if not order or order["email"].strip().lower() != email.strip().lower():
+        # A wrong email and an unknown number get the same reply, so nothing is revealed either way.
+        failed_lookups[number] = recent + [now]
+        return NO_MATCH
+    failed_lookups.pop(number, None)
+    view = {k: order[k] for k in ORDER_FIELDS if order.get(k) is not None}
+    view["items"] = [{k: i[k] for k in ITEM_FIELDS if k in i} for i in order["items"]]
+    return json.dumps({"result": "match", "order": view})
 
 
 TOOLS = [search_help_center, lookup_order]
@@ -73,9 +98,10 @@ def chat(req: ChatRequest):
         for call in getattr(m, "tool_calls", None) or []:
             tools_called.append(call["name"])
         if m.type == "tool" and m.name == "lookup_order":
-            if m.content.startswith("{"):
-                lookup, found = "match", json.loads(m.content)
-                order = {"order_number": found["order_number"], "fulfillment_status": found["fulfillment_status"]}
+            result = json.loads(m.content)
+            if result["result"] == "match":
+                lookup = "match"
+                order = {k: result["order"][k] for k in ("order_number", "fulfillment_status")}
             elif lookup != "match":
                 lookup = "no_match"
 
@@ -87,6 +113,7 @@ def chat(req: ChatRequest):
         "article_ids_retrieved": [],
         "sources": [],
         "lookup": lookup,
+        "lookup_verified": lookup == "match",
         "order": order,
         "handoff_id": None,
         "escalated": False,
