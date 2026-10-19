@@ -34,15 +34,40 @@ HANDOFFS = ROOT / "logs" / "handoffs.jsonl"  # stands in for the support team's 
 ORDERS = {o["order_number"]: o for o in json.loads((ROOT / "data" / "orders.json").read_text())}
 vectorstore = open_vectorstore()
 ensure_index(vectorstore)
-retriever = vectorstore.as_retriever(search_kwargs={"k": 1})
+retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
 llm = ChatOpenAI(model=MODEL, reasoning_effort="low", use_responses_api=True, api_key=load_env()["OPENAI_API_KEY"])
 
 
-@tool
-def search_help_center(query: str) -> str:
-    """Search the Brightpan help center for shipping, returns, refunds, warranty, care and payment info."""
+@tool(response_format="content_and_artifact")
+def search_help_center(query: str) -> tuple[str, list]:
+    """Search the Brightpan help center for shipping, returns, refunds, warranty, care and payment info.
+    Returns the 4 closest articles; each starts with its id and exact title, like "[A05] Returns policy"."""
     docs = retriever.invoke(query)
-    return docs[0].page_content if docs else "No results."
+    if not docs:
+        return "No results.", []
+    articles = [{"id": d.metadata["article_id"], "title": d.metadata["title"]} for d in docs]
+    text = "\n\n---\n\n".join(f"[{d.metadata['article_id']}] {d.page_content}" for d in docs)
+    return text, articles
+
+
+# "(Source: Returns policy)" or "(Sources: A; B)"; titles may hold one level of parentheses.
+_CITATION = re.compile(r"\(Sources?:\s*((?:[^()]|\([^()]*\))*)\)", re.I)
+
+
+def cited_articles(answer: str, retrieved: dict) -> list:
+    """Article ids the answer cites by title, among the articles the search returned."""
+    titles = [(aid, title.lower()) for aid, title in retrieved.items()]
+    cited = []
+    for match in _CITATION.finditer(answer):
+        for part in match.group(1).split(";"):
+            name = part.strip().rstrip(".").lower()
+            if len(name) < 4:
+                continue
+            hit = next((t for t in titles if t[1] == name), None) or next(
+                (t for t in titles if t[1].startswith(name) or name.startswith(t[1])), None)
+            if hit and hit[0] not in cited:
+                cited.append(hit[0])
+    return cited
 
 
 # What a verified customer may see about their own order: no name, email or address.
@@ -144,7 +169,7 @@ def chat(req: ChatRequest):
         return reply
 
     messages = result["messages"]
-    tools_called, lookup, order, handoff_id = [], None, None, None
+    tools_called, lookup, order, handoff_id, retrieved = [], None, None, None, {}
     for m in messages:
         for call in getattr(m, "tool_calls", None) or []:
             tools_called.append(call["name"])
@@ -158,19 +183,24 @@ def chat(req: ChatRequest):
                 order = {k: found["order"][k] for k in ("order_number", "fulfillment_status")}
             elif lookup != "match":
                 lookup = "no_match"
+        if m.type == "tool" and m.name == "search_help_center":
+            for a in getattr(m, "artifact", None) or []:
+                retrieved.setdefault(a["id"], a["title"])
         if m.type == "tool" and m.name == "escalate_to_human":
             try:
                 handoff_id = json.loads(m.content).get("handoff_id") or handoff_id
             except json.JSONDecodeError:
                 pass
 
+    answer = messages[-1].text.strip()
+    cited = cited_articles(answer, retrieved)
     reply = {
-        "answer": messages[-1].text.strip(),
+        "answer": answer,
         "session_id": req.session_id,
         "tools_called": tools_called,
-        "article_ids_used": [],
-        "article_ids_retrieved": [],
-        "sources": [],
+        "article_ids_used": cited,
+        "article_ids_retrieved": list(retrieved),
+        "sources": [{"id": a, "title": retrieved[a]} for a in cited],
         "lookup": lookup,
         "lookup_verified": lookup == "match",
         "order": order,

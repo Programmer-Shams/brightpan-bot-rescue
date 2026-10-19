@@ -48,6 +48,23 @@ class LookupOrder(unittest.TestCase):
         self.assertNotIn("1002", app.failed_lookups)
 
 
+class CitedArticles(unittest.TestCase):
+    RETRIEVED = {"A01": "Shipping options and costs (United States)", "A05": "Returns policy", "A06": "Refunds"}
+
+    def test_title_with_parentheses(self):
+        answer = "It's $6.95. (Source: Shipping options and costs (United States))"
+        self.assertEqual(app.cited_articles(answer, self.RETRIEVED), ["A01"])
+
+    def test_two_sources_and_prefix(self):
+        answer = "Within 30 days, refunded in 5 to 7 days. (Sources: Returns policy; Refunds.)"
+        self.assertEqual(app.cited_articles(answer, self.RETRIEVED), ["A05", "A06"])
+        self.assertEqual(app.cited_articles("(Source: Shipping options and costs)", self.RETRIEVED), ["A01"])
+
+    def test_only_retrieved_articles_count(self):
+        self.assertEqual(app.cited_articles("(Source: Warranty)", self.RETRIEVED), [])
+        self.assertEqual(app.cited_articles("No citation here.", self.RETRIEVED), [])
+
+
 class EscalateToHuman(unittest.TestCase):
     def test_saves_handoff_and_returns_id(self):
         with tempfile.TemporaryDirectory() as tmp, mock.patch.object(app, "HANDOFFS", Path(tmp) / "handoffs.jsonl"):
