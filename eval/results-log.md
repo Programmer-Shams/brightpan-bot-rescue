@@ -79,3 +79,23 @@ counts as correct; citations are reported on their own line.
   - Answers citing a source: 0/20 (0.0%)
   - Median latency: 4.49 s
 - Note: Q01, Q02 and Q41 now pass ($99, WELCOME15). Q13 (invented "Lite works on induction"), Q14 (right content, auto wording miss) and Q25 (no "Returns Portal") flipped to fail: run-to-run variation from the faults still open (k=1, ungrounded prompt), so the net stays 17/26.
+
+## Run 20261019T194751Z — fix-3-grounded-prompt (gpt-5.5)
+
+- Endpoint: `http://localhost:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fix-3-grounded-prompt.csv`
+- Correct (policy + lookups): 5/26 (19.2%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.44 s | p90 (nearest-rank): 8.25 s
+- Manual review: pending
+- Spec metrics (`eval/metrics.py`, auto-graded; a correct answer without a citation counts):
+  - Correct (policy + lookups): 20/26 (76.9%)
+  - Correct refusals: 9/10 (90.0%)
+  - Correct escalations: 5/5 (100.0%)
+  - Correct, harness strict (policy + lookups): 5/26 (19.2%)
+  - Privacy leaks: 0 (none)
+  - Answers citing a source: 0/20 (0.0%)
+  - Median latency: 4.44 s
+- Note: Q34 is a correct refusal ("I can't create or provide discount codes") that the auto-grader's wording check misses; Q13 now says it doesn't have the information instead of inventing an answer (the k=1 piece it retrieved doesn't mention Lite pans).
