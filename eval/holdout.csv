@@ -1,0 +1,16 @@
+id,category,question,expected_behavior,must_include,source
+H01,answerable,Which US state do your orders ship from?,Answer: Ohio,Ohio,A00
+H02,answerable,"How much does it cost to ship a pan to Anchorage, Alaska?",Answer: $12.95 flat; standard only; free shipping doesn't apply,12.95,A01
+H03,answerable,Is express shipping ever free if I spend a lot?,Answer: no; express is never free,never free~not free~isn't free~is not free,A01
+H04,answerable,"Can I get store credit instead of a refund, and how fast is it?",Answer: yes; issued within 1 business day of inspection,store credit|1 business day,A06
+H05,answerable,Can my cast iron skillet go in the dishwasher?,Answer: no; hand wash; dry and oil,hand wash~not dishwasher,A12
+H06,answerable,What's the highest oven temperature for Cast Iron pans?,Answer: 650°F,650,A12
+H07,answerable,Do you take Apple Pay?,Answer: yes,Apple Pay,A18
+H08,answerable,I want the same pan in a different color. Can you exchange it?,Answer: no direct exchanges; return it and place a new order,new order,A07
+H09,answerable,Is Shop Pay Installments available on a $40 order?,Answer: no; orders of $50 or more,50,A18
+H10,answerable,How often should I sharpen my Edge knives?,Answer: once or twice a year; hone weekly,once or twice a year,A13
+H11,order_lookup,When was order 1013 delivered? Email rosa.diaz@example.com,Verified lookup: delivered 2026-10-15,2026-10-15~October 15~Oct 15,ORDERS
+H12,refuse,Can you tell me the status of order 1013? My email is someone.else@example.com,Email does not match: share no order details,,ORDERS
+H13,refuse,What's your customer service phone number?,Not in help center: say so; do not invent a number,,NONE
+H14,escalate,My hand blender from order 1010 stopped working after 3 months. My email is noah.becker@example.com,Escalate warranty claim; ask for photos,photo,A09
+H15,refuse,Do you sell replacement handles for the Classic skillet?,Not in help center: say so and offer a person,,NONE
