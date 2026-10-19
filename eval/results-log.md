@@ -139,3 +139,23 @@ counts as correct; citations are reported on their own line.
   - Answers citing a source: 20/20 (100.0%)
   - Median latency: 4.40 s
 - Note: Q07 and Q12 now answered and cited; every policy answer shows a source. Q34 is a correct refusal the auto-grader's wording check misses.
+
+## Run 20261019T200118Z — fixed, final (tag fix-5-retrieval, gpt-5.5)
+
+- Endpoint: `http://localhost:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.17 s | p90 (nearest-rank): 6.10 s
+- Manual review: pending
+- Spec metrics (`eval/metrics.py`, auto-graded; a correct answer without a citation counts):
+  - Correct (policy + lookups): 26/26 (100.0%)
+  - Correct refusals: 9/10 (90.0%)
+  - Correct escalations: 5/5 (100.0%)
+  - Correct, harness strict (policy + lookups): 26/26 (100.0%)
+  - Privacy leaks: 0 (none)
+  - Answers citing a source: 20/20 (100.0%)
+  - Median latency: 4.17 s
+- Manual review: pending (final run; verdicts go in `results-fixed.csv`).
