@@ -1,11 +1,14 @@
 """Unit tests for the bot's tools (no model calls). Run: .venv/bin/python -m unittest bot/test_bot.py"""
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import app  # noqa: E402
+import ingest  # noqa: E402
 
 
 def lookup(number, email):
@@ -43,6 +46,50 @@ class LookupOrder(unittest.TestCase):
             lookup("1002", "guess@example.com")
         self.assertEqual(lookup("1002", "maria.lopez@example.com")["result"], "match")
         self.assertNotIn("1002", app.failed_lookups)
+
+
+class FakeStore:
+    def __init__(self):
+        self.docs, self.resets = [], 0
+
+    def reset_collection(self):
+        self.docs, self.resets = [], self.resets + 1
+
+    def add_documents(self, docs):
+        self.docs += docs
+
+
+class EnsureIndex(unittest.TestCase):
+    KB = "# Help\n\n## [A01] Shipping\n\nFree over $75.\n\n## [A02] Returns\n\n30 days.\n"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        tmp = Path(self.tmp.name)
+        self.patches = [mock.patch.object(ingest, "KB_FILE", tmp / "kb.md"),
+                        mock.patch.object(ingest, "MANIFEST", tmp / "manifest.json")]
+        for p in self.patches:
+            p.start()
+        ingest.KB_FILE.write_text(self.KB)
+        self.store = FakeStore()
+
+    def tearDown(self):
+        for p in self.patches:
+            p.stop()
+        self.tmp.cleanup()
+
+    def test_builds_once_then_reuses(self):
+        v1 = ingest.ensure_index(self.store)
+        self.assertEqual(ingest.ensure_index(self.store), v1)
+        self.assertEqual(self.store.resets, 1)
+
+    def test_file_change_reindexes_and_names_changed_articles(self):
+        v1 = ingest.ensure_index(self.store)
+        ingest.KB_FILE.write_text(self.KB.replace("$75", "$99"))
+        v2 = ingest.ensure_index(self.store)
+        self.assertNotEqual(v1, v2)
+        self.assertEqual(self.store.resets, 2)
+        self.assertEqual(ingest.read_manifest()["changed_articles"], ["A01"])
+        self.assertIn("$99", "".join(d.page_content for d in self.store.docs))
 
 
 if __name__ == "__main__":

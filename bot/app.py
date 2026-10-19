@@ -7,11 +7,11 @@ import json
 import sys
 import time
 import traceback
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI
 from langchain.agents import create_agent
-from langchain_chroma import Chroma
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
@@ -20,13 +20,15 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "bot"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from envfile import load_env  # noqa: E402
-from ingest import CHROMA_DIR, COLLECTION, embeddings  # noqa: E402
+from ingest import ensure_index, open_vectorstore  # noqa: E402
 
 MODEL = load_env().get("OPENAI_MODEL", "gpt-5.5")
 SYSTEM_PROMPT = "You are a helpful assistant for Brightpan. Answer the customer's question."
 
+LOG_FILE = ROOT / "logs" / "chat.log"
 ORDERS = {o["order_number"]: o for o in json.loads((ROOT / "data" / "orders.json").read_text())}
-vectorstore = Chroma(collection_name=COLLECTION, embedding_function=embeddings(), persist_directory=str(CHROMA_DIR))
+vectorstore = open_vectorstore()
+ensure_index(vectorstore)
 retriever = vectorstore.as_retriever(search_kwargs={"k": 1})
 llm = ChatOpenAI(model=MODEL, reasoning_effort="low", use_responses_api=True, api_key=load_env()["OPENAI_API_KEY"])
 
@@ -80,17 +82,32 @@ class ChatRequest(BaseModel):
     today: str | None = None
 
 
+def log_turn(reply: dict) -> None:
+    """One JSON line per answer: which help-center version it used, never the message text."""
+    keys = ("session_id", "index_version", "tools_called", "article_ids_used", "lookup", "escalated", "latency_ms",
+            "error")
+    entry = {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"), **{k: reply.get(k) for k in keys}}
+    LOG_FILE.parent.mkdir(exist_ok=True)
+    with LOG_FILE.open("a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
 @app.post("/chat")
 def chat(req: ChatRequest):
     started = time.perf_counter()
+    index_version = None
     try:
+        index_version = ensure_index(vectorstore)
         prompt = SYSTEM_PROMPT + (f"\nToday's date: {req.today}." if req.today else "")
         agent = create_agent(llm, TOOLS, system_prompt=prompt)
         result = agent.invoke({"messages": [{"role": "user", "content": req.message}]})
     except Exception:
         traceback.print_exc()
-        return {"answer": "Sorry, something went wrong. Please try again.", "session_id": req.session_id,
-                "error": True, "latency_ms": round((time.perf_counter() - started) * 1000)}
+        reply = {"answer": "Sorry, something went wrong. Please try again.", "session_id": req.session_id,
+                 "index_version": index_version, "error": True,
+                 "latency_ms": round((time.perf_counter() - started) * 1000)}
+        log_turn(reply)
+        return reply
 
     messages = result["messages"]
     tools_called, lookup, order = [], None, None
@@ -98,14 +115,17 @@ def chat(req: ChatRequest):
         for call in getattr(m, "tool_calls", None) or []:
             tools_called.append(call["name"])
         if m.type == "tool" and m.name == "lookup_order":
-            result = json.loads(m.content)
-            if result["result"] == "match":
+            try:
+                found = json.loads(m.content)
+            except json.JSONDecodeError:
+                found = {"result": "error"}
+            if found.get("result") == "match":
                 lookup = "match"
-                order = {k: result["order"][k] for k in ("order_number", "fulfillment_status")}
+                order = {k: found["order"][k] for k in ("order_number", "fulfillment_status")}
             elif lookup != "match":
                 lookup = "no_match"
 
-    return {
+    reply = {
         "answer": messages[-1].text.strip(),
         "session_id": req.session_id,
         "tools_called": tools_called,
@@ -119,5 +139,8 @@ def chat(req: ChatRequest):
         "escalated": False,
         "latency_ms": round((time.perf_counter() - started) * 1000),
         "model": MODEL,
+        "index_version": index_version,
         "error": False,
     }
+    log_turn(reply)
+    return reply

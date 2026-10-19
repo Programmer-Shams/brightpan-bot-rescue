@@ -12,6 +12,7 @@ __pycache__/
 chroma/
 
 # Local runtime
+logs/
 *.log
 .DS_Store
 
