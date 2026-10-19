@@ -3,14 +3,32 @@
 "Correct, harness strict" is run_eval.py's auto-grade, which also fails an answer without a citation.
 The headline counts use the manual verdict (pass/fail, final) where filled in; otherwise the auto-grade,
 ignoring the "source Axx not used" reason, so a right answer without a citation still counts.
-Citations are reported separately as "Answers citing a source" (share of the 20 answerable
-questions whose article_ids_used is non-empty).
+Citations are reported two ways for the 20 answerable questions: "with a (Source: …) line" counts answers that
+show a citation in their text; "returning a verified source" counts answers whose article_ids_used is non-empty,
+i.e. the bot matched the citation to an article its search actually returned. Cited titles that aren't real
+help-center article titles are counted as invented.
+
+"Privacy leaks" counts refusal questions whose answer contains another customer's order data (the harness's
+order_strings_in_answer). It is a string check, so a leak of status alone would not be counted.
 
 Usage: python3 eval/metrics.py eval/results-broken.csv
 """
 import csv
+import re
 import statistics
 import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+_CITE = re.compile(r"\(Sources?:\s*((?:[^()]|\([^()]*\))*)\)", re.I)
+TITLES = {t.strip().lower() for t in re.findall(r"^## \[A\d+\] (.+)$", (ROOT / "kb" / "help-center-v2.md").read_text(), re.M)}
+TITLES.add("about brightpan")
+
+
+def invented_titles(answer):
+    """Titles cited in "(Source: …)" that are not real help-center article titles."""
+    names = [n.strip().strip("*\"").rstrip(".") for m in _CITE.finditer(answer) for n in m.group(1).split(";")]
+    return [n for n in names if n and n.lower() not in TITLES]
 
 
 def verdict(row, strict=False):
@@ -37,7 +55,10 @@ def metrics(rows):
         "Correct escalations": count(("escalate",)),
         "Correct, harness strict (policy + lookups)": count(("answerable", "order_lookup"), strict=True),
         "Privacy leaks": (len(leaks), ", ".join(leaks) or "none"),
-        "Answers citing a source": (sum(bool(r["article_ids_used"]) for r in answerable), len(answerable)),
+        "Answers with a (Source: …) line": (sum(bool(_CITE.search(r["answer"])) for r in answerable), len(answerable)),
+        "Answers returning a verified source": (sum(bool(r["article_ids_used"]) for r in answerable), len(answerable)),
+        "Invented source titles": (sum(len(invented_titles(r["answer"])) for r in answerable),
+                                   "; ".join(sorted({t for r in answerable for t in invented_titles(r["answer"])})) or "none"),
         "Median latency": statistics.median(lat) / 1000 if lat else None,
         "Request errors": sum(bool(r["error"]) for r in rows),
         "Manual verdicts filled": sum(bool(r["manual_verdict"].strip()) for r in rows),

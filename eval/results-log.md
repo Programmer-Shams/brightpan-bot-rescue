@@ -99,6 +99,7 @@ counts as correct; citations are reported on their own line.
   - Answers citing a source: 0/20 (0.0%)
   - Median latency: 4.44 s
 - Note: Q34 is a correct refusal ("I can't create or provide discount codes") that the auto-grader's wording check misses; Q13 now says it doesn't have the information instead of inventing an answer (the k=1 piece it retrieved doesn't mention Lite pans).
+- Correction (review, 2026-10-19): this run's answers already show citations in their text: 18 of 20 answerable answers have a "(Source: …)" line, but 8 cited titles are invented (e.g. "Shipping policy", "Contact Brightpan support"), because the prompt asked for exact article titles before search results carried any. The 0/20 above counts verified sources returned by the bot, which only exist from fix 5.
 
 ## Run 20261019T195253Z — fix-4-chunking (gpt-5.5)
 
@@ -118,7 +119,8 @@ counts as correct; citations are reported on their own line.
   - Privacy leaks: 0 (none)
   - Answers citing a source: 0/20 (0.0%)
   - Median latency: 4.49 s
-- Note: Q03, Q05, Q13, Q18, Q19 now complete. Q07 and Q12 say "I don't have that information": with k=1 the single article retrieved was not the returns or Classic care article. Q34 is again a correct refusal the auto-grader's wording check misses.
+- Note: Q03, Q05, Q13, Q18 now complete (Q19 was already correct at fix 3; it was graded down there only for a missing source). Q07 and Q12 say "I don't have that information": with k=1 the single article retrieved was not the returns or Classic care article. Q34 is again a correct refusal the auto-grader's wording check misses.
+- Correction (review, 2026-10-19): 18 of 20 answerable answers have a "(Source: …)" line and none of the cited titles is invented any more (one document per article now starts with its title); the 0/20 counts verified sources returned by the bot.
 
 ## Run 20261019T195738Z — fix-5-retrieval (gpt-5.5)
 
@@ -159,3 +161,96 @@ counts as correct; citations are reported on their own line.
   - Answers citing a source: 20/20 (100.0%)
   - Median latency: 4.17 s
 - Manual review: pending (final run; verdicts go in `results-fixed.csv`).
+
+## Run 20261019T202853Z — fixed, final (after review fixes, gpt-5.5)
+
+- Endpoint: `http://localhost:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed.csv`
+- Correct (policy + lookups): 25/26 (96.2%)
+- Correct refusals (auto, pending manual review): 8/10 (80.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.47 s | p90 (nearest-rank): 5.55 s
+- Manual review: pending
+- Spec metrics (`eval/metrics.py`, auto-graded; a correct answer without a citation counts):
+  - Correct (policy + lookups): 26/26 (100.0%)
+  - Correct refusals: 8/10 (80.0%)
+  - Correct escalations: 5/5 (100.0%)
+  - Correct, harness strict (policy + lookups): 25/26 (96.2%)
+  - Privacy leaks: 0 (none)
+  - Answers with a (Source: …) line: 20/20 (100.0%)
+  - Answers returning a verified source: 20/20 (100.0%)
+  - Invented source titles: 0 (none)
+  - Median latency: 4.47 s
+- Manual review: pending.
+
+## Run 20261019T203220Z — holdout-broken 8003 (15 held-out questions, gpt-5.5)
+
+> **INVALID — do not use these numbers.** A shell-loop mistake left the port out of the endpoint (`http://localhost:/chat`), so all 15 requests were refused before reaching either bot. Rerun below.
+
+- Endpoint: `http://localhost:/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-broken 8003.csv`
+- Correct (policy + lookups): 0/11 (0.0%)
+- Correct refusals (auto, pending manual review): 0/3 (0.0%)
+- Correct escalations: 0/1 (0.0%)
+- Request errors: 15/15
+- Latency median: n/a | p90 (nearest-rank): n/a
+- Manual review: pending
+
+## Run 20261019T203220Z — holdout-fixed 8004 (15 held-out questions, gpt-5.5)
+
+> **INVALID — do not use these numbers.** A shell-loop mistake left the port out of the endpoint (`http://localhost:/chat`), so all 15 requests were refused before reaching either bot. Rerun below.
+
+- Endpoint: `http://localhost:/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-fixed 8004.csv`
+- Correct (policy + lookups): 0/11 (0.0%)
+- Correct refusals (auto, pending manual review): 0/3 (0.0%)
+- Correct escalations: 0/1 (0.0%)
+- Request errors: 15/15
+- Latency median: n/a | p90 (nearest-rank): n/a
+- Manual review: pending
+
+## Run 20261019T203259Z — holdout-broken (15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8003/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-broken.csv`
+- Correct (policy + lookups): 1/11 (9.1%)
+- Correct refusals (auto, pending manual review): 0/3 (0.0%)
+- Correct escalations: 0/1 (0.0%)
+- Request errors: 0/15
+- Latency median: 4.52 s | p90 (nearest-rank): 13.80 s
+- Manual review: pending
+- Spec metrics (`eval/metrics.py`, auto-graded; 10 answerable, 1 lookup, 3 refusals, 1 escalation):
+  - Correct (policy + lookups): 11/11 (100.0%)
+  - Correct refusals: 0/3 (0.0%)
+  - Correct escalations: 0/1 (0.0%)
+  - Privacy leaks: 0 (none)
+  - Answers with a (Source: …) line: 0/10 (0.0%)
+  - Answers returning a verified source: 0/10 (0.0%)
+  - Invented source titles: 0 (none)
+  - Median latency: 4.52 s
+
+## Run 20261019T203443Z — holdout-fixed (15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-fixed.csv`
+- Correct (policy + lookups): 10/11 (90.9%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.28 s | p90 (nearest-rank): 7.15 s
+- Manual review: pending
+- Spec metrics (`eval/metrics.py`, auto-graded; 10 answerable, 1 lookup, 3 refusals, 1 escalation):
+  - Correct (policy + lookups): 10/11 (90.9%)
+  - Correct refusals: 3/3 (100.0%)
+  - Correct escalations: 1/1 (100.0%)
+  - Privacy leaks: 0 (none)
+  - Answers with a (Source: …) line: 9/10 (90.0%)
+  - Answers returning a verified source: 9/10 (90.0%)
+  - Invented source titles: 0 (none)
+  - Median latency: 4.28 s
+
+### Notes on the post-review runs
+
+- The final run above (after review fixes) supersedes the earlier final run for the published numbers; both stay in this log. Its auto-grade misses: Q34 and Q28 are correct refusals the wording check misses (Q28 now answers from the new "About Brightpan" article: online store, ships from Ohio, no store listed for Columbus); Q09 is correct but cites "Gift cards" instead of the expected "Returns policy", so only the strict score drops (25/26).
+- Held-out set (15 questions written after the fixes, never used for tuning): the fixed build misses H01 ("Which US state do your orders ship from?"): its search didn't return the short "About Brightpan" article in the top 4 for that wording. Left as measured; not tuned on.
