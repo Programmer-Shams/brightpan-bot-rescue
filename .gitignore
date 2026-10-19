@@ -14,3 +14,6 @@ chroma/
 # Local runtime
 *.log
 .DS_Store
+
+# Broken build checked out at tag broken (scripts/serve_builds.sh)
+.worktrees/
