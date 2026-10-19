@@ -134,7 +134,7 @@ def lookup_order(order_number: str, email: str) -> str:
 
 _EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 _handoff_lock = threading.Lock()
-session_handoffs: dict[str, set] = {}  # hand-offs a session may add contact details to
+session_handoffs: dict[str, dict[str, bool]] = {}  # per session: hand-off id -> has an email to reply to
 
 
 def make_escalate_tool(session_id: str):
@@ -156,13 +156,14 @@ def make_escalate_tool(session_id: str):
                  "email": email, "order_number": order_number}
         with _handoff_lock:
             if handoff_id:
-                if handoff_id not in session_handoffs.get(session_id, set()):
+                if handoff_id not in session_handoffs.get(session_id, {}):
                     return json.dumps({"result": "unknown_handoff", "message": "No hand-off with that id in this "
                                        "conversation. Create a new one without a handoff_id."})
                 entry.update(handoff_id=handoff_id, update=True)
             else:
                 entry.update(handoff_id=f"H-{uuid.uuid4().hex[:10]}", reason=reason, summary=summary.strip()[:1000])
-                session_handoffs.setdefault(session_id, set()).add(entry["handoff_id"])
+            has_email = session_handoffs.setdefault(session_id, {}).get(entry["handoff_id"], False)
+            session_handoffs[session_id][entry["handoff_id"]] = has_email or bool(_EMAIL.fullmatch(email))
             HANDOFFS.parent.mkdir(exist_ok=True)
             with HANDOFFS.open("a") as f:
                 f.write(json.dumps(entry) + "\n")
@@ -176,6 +177,17 @@ def make_escalate_tool(session_id: str):
                            "contact": "email" if _EMAIL.fullmatch(email) else "missing", "message": message})
 
     return escalate_to_human
+
+
+def handoff_note(session_id: str) -> str:
+    """Tell the model about this conversation's hand-offs that still have no email to reply to."""
+    with _handoff_lock:
+        waiting = [h for h, has_email in session_handoffs.get(session_id, {}).items() if not has_email]
+    if not waiting:
+        return ""
+    return (f"\n\nIn this conversation you already handed off {', '.join(waiting)} without an email address. If the "
+            "customer now gives their email, call escalate_to_human with that handoff_id and the email instead of "
+            "creating a new hand-off.")
 
 
 # Short per-session memory so follow-ups ("my email is …") work. Plain user/assistant text only.
@@ -268,7 +280,7 @@ def chat(req: ChatRequest):
     index_version = None
     try:
         index_version = ensure_index(vectorstore())
-        prompt = SYSTEM_PROMPT.replace("{{TODAY}}", store_today(req.today))
+        prompt = SYSTEM_PROMPT.replace("{{TODAY}}", store_today(req.today)) + handoff_note(req.session_id)
         tools = [search_help_center, lookup_order, make_escalate_tool(req.session_id)]
         history = get_history(req.session_id)
         agent = create_agent(llm(), tools, system_prompt=prompt)

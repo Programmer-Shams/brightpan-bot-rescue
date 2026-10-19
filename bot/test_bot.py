@@ -119,6 +119,13 @@ class EscalateToHuman(unittest.TestCase):
         self.assertEqual(other["result"], "unknown_handoff")
         self.assertEqual(len(self.saved()), 2)
 
+    def test_prompt_note_lists_handoffs_waiting_for_email(self):
+        first = self.escalate("s1")
+        self.assertIn(first["handoff_id"], app.handoff_note("s1"))
+        self.assertEqual(app.handoff_note("s2"), "")
+        self.escalate("s1", handoff_id=first["handoff_id"], email="tom.walsh@example.com")
+        self.assertEqual(app.handoff_note("s1"), "")
+
 
 class History(unittest.TestCase):
     def setUp(self):
