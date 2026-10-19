@@ -50,12 +50,16 @@ export function EvidenceRow({ reply, build }: { reply: BotReply; build: Build })
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground">
         <span>
           {tools.length ? "Used " : "No tools used"}
-          {tools.map((t, i) => (
-            <span key={`${t}-${i}`}>
-              {i > 0 && ", "}
-              <code className="font-mono text-foreground/75">{t}</code>
-            </span>
-          ))}
+          {[...new Set(tools)].map((t, i) => {
+            const times = tools.filter((x) => x === t).length;
+            return (
+              <span key={t}>
+                {i > 0 && ", "}
+                <code className="font-mono text-foreground/75">{t}</code>
+                {times > 1 && <span className="tabular-nums"> ×{times}</span>}
+              </span>
+            );
+          })}
         </span>
         {reply.index_version && (
           <span>
