@@ -18,6 +18,7 @@ Before/after rescue of a small Python + LangChain support chatbot for Brightpan 
 | `fix-3-grounded-prompt` | Grounded instructions ([bot/system_prompt.md](bot/system_prompt.md)) and an `escalate_to_human` tool |
 | `fix-4-chunking` | One index document per help-center article; only changed articles are re-indexed |
 | `fix-5-retrieval` | Top 4 articles with ids and titles; answers cite "(Source: …)"; cited articles returned with the reply |
+| `fixed-final` | After an independent code review: hand-offs ask for a reply email and attach it to the same case; short conversation memory (fixed build only; the broken build keeps none); the help-center intro indexed as "About Brightpan"; capped agent runs; sturdier citation parsing and index rebuilds. The published final and held-out runs use this tag. |
 
 ## Setup
 
@@ -56,7 +57,7 @@ Citations are measured two ways: answers that show a "(Source: …)" line, and a
 
 ### Held-out questions
 
-`eval/holdout.csv` has 15 questions written after the fixes and never used for tuning (paraphrases and help-center facts the main test doesn't ask about). They were committed before their first run.
+`eval/holdout.csv` has 15 questions written after the fixes and never used for tuning (paraphrases and help-center facts the main test doesn't ask about). They were committed before their first run. On them, policy accuracy did not improve: both builds get the facts about equally right. The gains that carry over are refusals, hand-offs, privacy and verified sources.
 
 ```bash
 python3 eval/run_holdout.py --endpoint http://127.0.0.1:8004/chat --label holdout-rerun --out eval/holdout-rerun.csv

@@ -77,6 +77,10 @@ class CitedArticles(unittest.TestCase):
         self.assertEqual(self.cite("(Source: Caring for)"), [])
         self.assertEqual(self.cite("(Source: Shipping options and costs)"), ["A01"])
 
+    def test_empty_citation_does_not_crash(self):
+        self.assertEqual(self.cite("Thanks! (Source: )"), [])
+        self.assertEqual(self.cite("(Sources:)"), [])
+
     def test_only_retrieved_articles_count(self):
         self.assertEqual(self.cite("(Source: Warranty)"), [])
         self.assertEqual(self.cite("No citation here."), [])
@@ -118,6 +122,27 @@ class EscalateToHuman(unittest.TestCase):
         other = self.escalate("s2", handoff_id=first["handoff_id"], email="attacker@example.com")
         self.assertEqual(other["result"], "unknown_handoff")
         self.assertEqual(len(self.saved()), 2)
+
+    def test_update_keeps_its_own_summary(self):
+        first = self.escalate("s1", summary="Bank dispute", reason="complaint")
+        self.escalate("s1", handoff_id=first["handoff_id"], summary="Email for the bank dispute",
+                      reason="complaint", email="lee.morgan@example.com")
+        self.assertEqual(self.saved()[1]["summary"], "Email for the bank dispute")
+
+    def test_two_problems_make_two_handoffs(self):
+        dispute = self.escalate("s1", summary="Bank dispute", reason="complaint")
+        kettle = self.escalate("s1", email="tom.walsh@example.com")
+        self.assertNotEqual(dispute["handoff_id"], kettle["handoff_id"])
+        self.assertIn(dispute["handoff_id"], app.handoff_note("s1"))
+        self.assertNotIn(kettle["handoff_id"], app.handoff_note("s1"))
+        self.assertIn("A different problem is a new hand-off", app.handoff_note("s1"))
+
+    def test_expired_session_forgets_handoffs(self):
+        self.escalate("s1")
+        app.save_turn("s1", "q", "a")
+        with mock.patch.object(app.time, "time", return_value=app.time.time() + app.HISTORY_TTL + 1):
+            app.get_history("other")
+        self.assertNotIn("s1", app.session_handoffs)
 
     def test_prompt_note_lists_handoffs_waiting_for_email(self):
         first = self.escalate("s1")
@@ -234,6 +259,12 @@ class EnsureIndex(unittest.TestCase):
             with mock.patch("sys.stderr"):
                 self.assertEqual(ingest.ensure_index(self.store), v1)
             self.assertEqual(sorted(self.store.docs), ["A01", "A02"])
+
+    def test_a00_heading_is_reserved(self):
+        v1 = ingest.ensure_index(self.store)
+        ingest.KB_FILE.write_text(self.KB + "\n## [A00] Something else\n\nText.\n")
+        with mock.patch("sys.stderr"):
+            self.assertEqual(ingest.ensure_index(self.store), v1)
 
     def test_broken_file_without_index_raises(self):
         ingest.KB_FILE.write_text("# Help\n\nNothing here.\n")

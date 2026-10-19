@@ -144,6 +144,8 @@ counts as correct; citations are reported on their own line.
 
 ## Run 20261019T200118Z — fixed, final (tag fix-5-retrieval, gpt-5.5)
 
+> Superseded by the run after review fixes below; `results-fixed.csv` now holds that newer run. This run's per-row file is in git at commit `98ded7a`.
+
 - Endpoint: `http://localhost:8004/chat` | today=2026-10-18 | questions: 41
 - Results file: `results-fixed.csv`
 - Correct (policy + lookups): 26/26 (100.0%)

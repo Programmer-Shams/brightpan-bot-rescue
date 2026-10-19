@@ -10,8 +10,8 @@ import type { Build, Turn } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const BUILDS: Record<Build, { name: string; note: string }> = {
-  broken: { name: "Broken build", note: "As handed over, tag broken" },
-  fixed: { name: "Fixed build", note: "After the five fixes" },
+  broken: { name: "Broken build", note: "As handed over (tag broken). No memory between messages" },
+  fixed: { name: "Fixed build", note: "After the audit (tag fixed-final)" },
 };
 
 export type Health = { up: boolean; port: string } | null;

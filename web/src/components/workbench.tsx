@@ -54,7 +54,7 @@ export function Workbench({ questions }: { questions: TestQuestion[] }) {
       ALL_BUILDS.forEach((b) =>
         fetch(`/api/chat?build=${b}`)
           .then((r) => r.json())
-          .then((h: Health) => setHealth((prev) => ({ ...prev, [b]: h })))
+          .then((h) => setHealth((prev) => ({ ...prev, [b]: typeof h?.up === "boolean" ? (h as Health) : null })))
           .catch(() => {}),
       );
     check();

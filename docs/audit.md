@@ -95,7 +95,7 @@ It noticed the mismatch and shared the details anyway. In a separate check in th
 
 **Fix.** Index one piece per help-center article (each `## [Axx]` section), with its id and title kept alongside the text. Every article is short enough to keep whole.
 
-**Verified by.** Q03, Q05, Q18, Q19.
+**Verified by.** Q03, Q05, Q18. (Q19, also cut by a piece boundary at baseline, already passed after fix 3.)
 
 ### 5. Search returns a single piece and no source (medium: wrong article, no sources)
 

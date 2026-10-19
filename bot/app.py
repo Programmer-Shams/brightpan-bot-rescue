@@ -21,6 +21,7 @@ from fastapi import FastAPI
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
+from langgraph.errors import GraphRecursionError
 from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -47,7 +48,7 @@ def vectorstore():
 
 @lru_cache(maxsize=1)
 def llm():
-    return ChatOpenAI(model=MODEL, reasoning_effort="low", use_responses_api=True, timeout=60, max_retries=1,
+    return ChatOpenAI(model=MODEL, reasoning_effort="low", use_responses_api=True, timeout=30, max_retries=1,
                       api_key=load_env()["OPENAI_API_KEY"])
 
 
@@ -85,7 +86,7 @@ def cited_articles(answer: str, retrieved: dict) -> list:
     titles = [(aid, title.lower()) for aid, title in retrieved.items()]
     cited = []
     for match in _CITATION.finditer(answer):
-        for part in (match.group(1) or match.group(2)).split(";"):
+        for part in (match.group(1) or match.group(2) or "").split(";"):
             hit = _match_title(part, titles)
             # "A, B" or "A and B" in one part: try the pieces, since titles can themselves contain "and" or ",".
             hits = [hit] if hit else [_match_title(p, titles) for p in re.split(r",|\band\b", part)]
@@ -161,7 +162,8 @@ def make_escalate_tool(session_id: str):
                                        "conversation. Create a new one without a handoff_id."})
                 entry.update(handoff_id=handoff_id, update=True)
             else:
-                entry.update(handoff_id=f"H-{uuid.uuid4().hex[:10]}", reason=reason, summary=summary.strip()[:1000])
+                entry["handoff_id"] = f"H-{uuid.uuid4().hex[:10]}"
+            entry.update(reason=reason, summary=summary.strip()[:1000])
             has_email = session_handoffs.setdefault(session_id, {}).get(entry["handoff_id"], False)
             session_handoffs[session_id][entry["handoff_id"]] = has_email or bool(_EMAIL.fullmatch(email))
             HANDOFFS.parent.mkdir(exist_ok=True)
@@ -186,8 +188,8 @@ def handoff_note(session_id: str) -> str:
     if not waiting:
         return ""
     return (f"\n\nIn this conversation you already handed off {', '.join(waiting)} without an email address. If the "
-            "customer now gives their email, call escalate_to_human with that handoff_id and the email instead of "
-            "creating a new hand-off.")
+            "customer now gives the email for that case, call escalate_to_human with that handoff_id and the email. "
+            "A different problem is a new hand-off: call escalate_to_human without a handoff_id.")
 
 
 # Short per-session memory so follow-ups ("my email is …") work. Plain user/assistant text only.
@@ -199,9 +201,14 @@ _history_lock = threading.Lock()
 def get_history(session_id: str) -> list:
     now = time.time()
     with _history_lock:
-        for sid in [s for s, (seen, _) in _history.items() if now - seen > HISTORY_TTL]:
+        expired = [s for s, (seen, _) in _history.items() if now - seen > HISTORY_TTL]
+        for sid in expired:
             del _history[sid]
-        return list(_history.get(session_id, (now, []))[1])
+        turns = list(_history.get(session_id, (now, []))[1])
+    with _handoff_lock:
+        for sid in expired:
+            session_handoffs.pop(sid, None)
+    return turns
 
 
 def save_turn(session_id: str, message: str, answer: str) -> None:
@@ -308,6 +315,10 @@ def chat(req: ChatRequest):
             "index_version": index_version,
             "error": False,
         }
+    except GraphRecursionError:
+        reply = {"answer": "I couldn't finish looking that up. Could you rephrase the question? I can also connect you "
+                           "with the support team.", "session_id": req.session_id, "index_version": index_version,
+                 "error": True, "latency_ms": round((time.perf_counter() - started) * 1000)}
     except Exception:
         traceback.print_exc()
         reply = {"answer": "Sorry, something went wrong. Please try again.", "session_id": req.session_id,

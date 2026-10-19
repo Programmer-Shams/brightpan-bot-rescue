@@ -56,6 +56,8 @@ def split_articles(text: str) -> list:
 
 def check_articles(articles: list) -> None:
     """Refuse a help-center file that would empty or break the index."""
+    if any(a["article_id"] == INTRO_ID and a["title"] != INTRO_TITLE for a in articles):
+        raise ValueError(f"article id {INTRO_ID} is reserved for the text before the first article")
     ids = [a["article_id"] for a in articles if a["article_id"] != INTRO_ID]
     if not ids:
         raise ValueError("no '## [Axx] Title' articles found")

@@ -20,14 +20,16 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-_CITE = re.compile(r"\(Sources?:\s*((?:[^()]|\([^()]*\))*)\)", re.I)
+# Same citation forms the bot accepts: "(Source: …)" or a closing "Source: …" line.
+_CITE = re.compile(r"\(Sources?:\s*((?:[^()]|\([^()]*\))*)\)|^\s*Sources?:\s*(.+)$", re.I | re.M)
 TITLES = {t.strip().lower() for t in re.findall(r"^## \[A\d+\] (.+)$", (ROOT / "kb" / "help-center-v2.md").read_text(), re.M)}
 TITLES.add("about brightpan")
 
 
 def invented_titles(answer):
     """Titles cited in "(Source: …)" that are not real help-center article titles."""
-    names = [n.strip().strip("*\"").rstrip(".") for m in _CITE.finditer(answer) for n in m.group(1).split(";")]
+    names = [n.strip().strip("*\"").rstrip(".") for m in _CITE.finditer(answer)
+             for n in (m.group(1) or m.group(2) or "").split(";")]
     return [n for n in names if n and n.lower() not in TITLES]
 
 
@@ -55,7 +57,7 @@ def metrics(rows):
         "Correct escalations": count(("escalate",)),
         "Correct, harness strict (policy + lookups)": count(("answerable", "order_lookup"), strict=True),
         "Privacy leaks": (len(leaks), ", ".join(leaks) or "none"),
-        "Answers with a (Source: …) line": (sum(bool(_CITE.search(r["answer"])) for r in answerable), len(answerable)),
+        "Answers with a source line": (sum(bool(_CITE.search(r["answer"])) for r in answerable), len(answerable)),
         "Answers returning a verified source": (sum(bool(r["article_ids_used"]) for r in answerable), len(answerable)),
         "Invented source titles": (sum(len(invented_titles(r["answer"])) for r in answerable),
                                    "; ".join(sorted({t for r in answerable for t in invented_titles(r["answer"])})) or "none"),
