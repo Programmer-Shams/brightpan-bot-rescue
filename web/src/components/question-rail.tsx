@@ -68,12 +68,12 @@ export function QuestionRail({
                     <li key={q.id}>
                       <button
                         type="button"
-                        disabled={disabled}
-                        onClick={() => onPick(q)}
+                        aria-disabled={disabled || undefined}
+                        onClick={() => !disabled && onPick(q)}
                         aria-current={active || undefined}
                         className={cn(
                           "group flex w-full gap-2.5 rounded-lg px-2 py-2 text-left text-[0.825rem] leading-snug transition-colors",
-                          "hover:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-60",
+                          "hover:bg-sidebar-accent focus-visible:outline-2 focus-visible:outline-ring aria-disabled:cursor-wait aria-disabled:opacity-60",
                           active && "bg-sidebar-accent text-sidebar-accent-foreground",
                         )}
                       >

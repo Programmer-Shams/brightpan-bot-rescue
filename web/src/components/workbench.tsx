@@ -23,8 +23,10 @@ async function ask(build: Build, sessionId: string, message: string): Promise<Tu
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ build, session_id: sessionId, message }),
     });
-    const data = await res.json();
-    if (!res.ok) return { role: "failed", id: newId(), message: data.error ?? `Request failed (HTTP ${res.status}).` };
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) {
+      return { role: "failed", id: newId(), message: data?.error ?? `This page's server returned HTTP ${res.status}. Check the npm run dev terminal.` };
+    }
     const reply = data as BotReply;
     if (reply.error) return { role: "failed", id: newId(), message: `The ${build} build hit an error. Check its server log.` };
     return { role: "assistant", id: newId(), reply };
@@ -147,10 +149,13 @@ export function Workbench({ questions }: { questions: TestQuestion[] }) {
 
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="hidden items-center gap-1.5 rounded-full border bg-background px-3 py-1 text-xs font-medium md:inline-flex">
+            <button
+              type="button"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-background px-2 py-1 text-xs font-medium focus-visible:outline-2 focus-visible:outline-ring md:px-3"
+            >
               <Info className="size-3.5 text-primary" aria-hidden />
-              Staged faults on a demo bot
-            </span>
+              <span className="sr-only md:not-sr-only">Staged faults on a demo bot</span>
+            </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
             Brightpan is a fictional store. The five faults in the broken build were planted on purpose for this demo.
@@ -225,8 +230,8 @@ function Intro({ questions, onPick, disabled }: { questions: TestQuestion[]; onP
           Ask the same question before and after the fix.
         </h1>
         <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-muted-foreground">
-          The broken build is the store&apos;s support bot as it was handed over. The fixed build is the same bot after
-          the audit. Every answer shows what it was based on.
+          The broken build is a demo store&apos;s support bot with five faults staged on purpose. The fixed build is
+          the same bot after the audit. Every answer shows what it was based on.
         </p>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -250,9 +255,9 @@ function Intro({ questions, onPick, disabled }: { questions: TestQuestion[]; onP
             <button
               key={q.id}
               type="button"
-              disabled={disabled}
-              onClick={() => onPick(q)}
-              className="group inline-flex max-w-full items-center gap-2 rounded-full border bg-card px-3.5 py-2 text-left text-sm transition-colors hover:border-primary hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-60"
+              aria-disabled={disabled || undefined}
+              onClick={() => !disabled && onPick(q)}
+              className="group inline-flex max-w-full items-center gap-2 rounded-full border bg-card px-3.5 py-2 text-left text-sm transition-colors hover:border-primary hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring aria-disabled:opacity-60"
             >
               <span className="font-mono text-[0.7rem] text-muted-foreground group-hover:text-accent-foreground">{q.id}</span>
               <span className="truncate">{q.question}</span>

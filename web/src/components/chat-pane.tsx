@@ -19,7 +19,8 @@ export type Health = { up: boolean; port: string } | null;
 export function ChatPane({ build, turns, health }: { build: Build; turns: Turn[]; health: Health }) {
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    end.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    end.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "end" });
   }, [turns]);
   const Icon = build === "broken" ? CircleAlert : CircleCheck;
 
@@ -42,12 +43,12 @@ export function ChatPane({ build, turns, health }: { build: Build; turns: Turn[]
         <ServerStatus health={health} />
       </header>
 
-      <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+      <div role="log" aria-live="polite" aria-label={`${BUILDS[build].name} conversation`} className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
         {turns.length === 0 && (
           <p className="pt-6 text-center text-sm text-muted-foreground">Answers from the {build} build appear here.</p>
         )}
         {turns.map((t) => (
-          <TurnView key={t.id} turn={t} />
+          <TurnView key={t.id} turn={t} build={build} />
         ))}
         <div ref={end} />
       </div>
@@ -72,7 +73,7 @@ function ServerStatus({ health }: { health: Health }) {
   );
 }
 
-function TurnView({ turn }: { turn: Turn }) {
+function TurnView({ turn, build }: { turn: Turn; build: Build }) {
   if (turn.role === "user") {
     return (
       <div className="flex flex-col items-end gap-1">
@@ -85,7 +86,7 @@ function TurnView({ turn }: { turn: Turn }) {
   }
   if (turn.role === "pending") {
     return (
-      <div className="space-y-2" aria-live="polite" aria-label="Waiting for the answer">
+      <div className="space-y-2" aria-label="Waiting for the answer">
         <div className="h-3 w-3/4 animate-pulse rounded bg-muted" />
         <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
       </div>
@@ -113,7 +114,7 @@ function TurnView({ turn }: { turn: Turn }) {
       >
         {turn.reply.answer || "(empty answer)"}
       </ReactMarkdown>
-      <EvidenceRow reply={turn.reply} />
+      <EvidenceRow reply={turn.reply} build={build} />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { createHmac, randomBytes } from "node:crypto";
 import type { Build } from "@/lib/types";
 
 // Proxies the page to the two bot builds (FastAPI /chat). The bot URLs stay on the server,
@@ -9,24 +10,33 @@ const ENDPOINTS: Record<Build, string> = {
 // The demo orders are dated October 2026; the eval harness freezes "today" to the same day.
 const TODAY = process.env.DEMO_TODAY ?? "2026-10-18";
 const MAX_MESSAGE = 2000;
+// Hosts this page is served from; anything else (e.g. a DNS-rebinding name) is refused.
+const ALLOWED_HOSTS = new Set((process.env.ALLOWED_HOSTS ?? "127.0.0.1:3300,localhost:3300").split(",").map((h) => h.trim()));
+// The browser's random id is mapped to a keyed hash before it reaches the bot, so a session id seen in the
+// bot's logs can't be replayed through this page to read that conversation's memory.
+const SESSION_KEY = process.env.SESSION_SECRET || randomBytes(32).toString("hex");
+const serverSessionId = (clientId: string) =>
+  "web-" + createHmac("sha256", SESSION_KEY).update(clientId).digest("hex").slice(0, 32);
 
 export const maxDuration = 120;
 
-// In-memory rate limit (single-process local demo server).
+// In-memory rate limit for this single-process local demo; one shared bucket. Rejected requests don't count.
 const RATE = { max: 60, windowMs: 5 * 60 * 1000 };
 let hits: number[] = [];
 
 function rateLimited(): boolean {
   const now = Date.now();
   hits = hits.filter((t) => now - t < RATE.windowMs);
+  if (hits.length >= RATE.max) return true;
   hits.push(now);
-  return hits.length > RATE.max;
+  return false;
 }
 
 const fail = (status: number, error: string) => Response.json({ error }, { status });
 
-/** Only same-origin requests: blocks other websites from posting through the proxy. */
+/** Only same-origin requests to an allowed host: blocks other websites from posting through the proxy. */
 function crossSite(request: Request): boolean {
+  if (!ALLOWED_HOSTS.has(request.headers.get("host") ?? "")) return true;
   if (request.headers.get("sec-fetch-site") === "cross-site") return true;
   const origin = request.headers.get("origin");
   if (!origin) return false;
@@ -41,6 +51,7 @@ const parseBuild = (value: unknown): Build | null => (value === "broken" || valu
 
 /** GET /api/chat?build=fixed — is that build's server up? */
 export async function GET(request: Request) {
+  if (crossSite(request)) return fail(403, "Requests must come from this page.");
   const build = parseBuild(new URL(request.url).searchParams.get("build"));
   if (!build) return fail(400, "Pick a build: broken or fixed.");
   try {
@@ -59,8 +70,6 @@ export async function POST(request: Request) {
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) {
     return fail(415, "Send the message as JSON.");
   }
-  if (rateLimited()) return fail(429, "Too many messages in a short time. Wait a few minutes, then try again.");
-
   let body: { message?: unknown; session_id?: unknown; build?: unknown };
   try {
     body = await request.json();
@@ -77,13 +86,14 @@ export async function POST(request: Request) {
     return fail(400, `Write a message of 1 to ${MAX_MESSAGE.toLocaleString("en-US")} characters.`);
   }
   if (!/^[\w-]{8,100}$/.test(sessionId)) return fail(400, "Start a new conversation and send the message again.");
+  if (rateLimited()) return fail(429, "Too many messages in a short time. Wait a few minutes, then try again.");
 
   let res: Response;
   try {
     res = await fetch(ENDPOINTS[build], {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, session_id: `web-${sessionId}`, today: TODAY }),
+      body: JSON.stringify({ message, session_id: serverSessionId(sessionId), today: TODAY }),
       signal: AbortSignal.timeout(110_000),
       cache: "no-store",
     });

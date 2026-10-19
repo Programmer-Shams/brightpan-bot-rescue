@@ -1,11 +1,15 @@
 import { FileText, FileX, PackageSearch, ShieldAlert, ShieldCheck, Timer, UserRound } from "lucide-react";
-import type { BotReply } from "@/lib/types";
+import type { BotReply, Build } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const chip = "inline-flex items-center gap-1.5 rounded-md px-2 py-1 leading-none";
 
-/** What the answer rests on: sources, order check, hand-off, tools. Missing evidence is shown, not hidden. */
-export function EvidenceRow({ reply }: { reply: BotReply }) {
+/**
+ * What the answer rests on: sources, order check, hand-off, tools. Missing evidence is shown, not hidden:
+ * the broken build can never return a source, so it gets the red flag; in the fixed build an answer without
+ * an article (a refusal, an order lookup, a hand-off) is normal and gets a neutral note.
+ */
+export function EvidenceRow({ reply, build }: { reply: BotReply; build: Build }) {
   const sources = reply.sources ?? [];
   const tools = reply.tools_called ?? [];
   const lookedUp = tools.includes("lookup_order");
@@ -21,10 +25,15 @@ export function EvidenceRow({ reply }: { reply: BotReply }) {
               <span className="text-foreground/80">{s.title}</span>
             </span>
           ))
-        ) : (
+        ) : build === "broken" ? (
           <span className={cn(chip, "border border-dashed border-scorch/60 text-scorch")}>
             <FileX className="size-3.5" aria-hidden />
             No source shown
+          </span>
+        ) : (
+          <span className={cn(chip, "border border-dashed text-muted-foreground")}>
+            <FileText className="size-3.5" aria-hidden />
+            No article cited
           </span>
         )}
 
