@@ -1,7 +1,8 @@
 """Keep a local Chroma index of the help center in sync with the file.
 
+One document per help-center article (each "## [Axx] Title" section), stored under its article id.
 Run once to build it: python bot/ingest.py. The app also calls ensure_index() before every answer:
-when the help-center file's hash differs from the manifest, it re-indexes and records which articles changed.
+when the help-center file's hash differs from the manifest, only the articles whose hash changed are re-indexed.
 """
 import hashlib
 import json
@@ -14,7 +15,6 @@ from pathlib import Path
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
-from langchain_text_splitters import CharacterTextSplitter
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -25,6 +25,7 @@ CHROMA_DIR = ROOT / "chroma"
 MANIFEST = CHROMA_DIR / "manifest.json"
 COLLECTION = "brightpan"
 EMBED_MODEL = "text-embedding-3-small"
+CHUNKING = "article"  # a manifest built with other chunking triggers a full rebuild
 _HEADING = re.compile(r"^## \[(A\d+)\] (.+)$", re.M)
 _lock = threading.Lock()
 
@@ -39,9 +40,14 @@ def sha256(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
 
-def article_hashes(text: str) -> dict:
+def split_articles(text: str) -> list:
     parts = _HEADING.split(text)
-    return {parts[i]: sha256(parts[i + 1] + parts[i + 2]) for i in range(1, len(parts), 3)}
+    return [{"article_id": parts[i], "title": parts[i + 1].strip(), "content": parts[i + 2].strip(),
+             "sha256": sha256(parts[i + 1] + parts[i + 2])} for i in range(1, len(parts), 3)]
+
+
+def article_hashes(text: str) -> dict:
+    return {a["article_id"]: a["sha256"] for a in split_articles(text)}
 
 
 def read_manifest() -> dict:
@@ -52,21 +58,31 @@ def read_manifest() -> dict:
 
 
 def build(vectorstore: Chroma, text: str) -> dict:
-    """Re-index the whole help center and write the manifest. Returns the new manifest."""
-    old = read_manifest().get("articles", {})
-    new = article_hashes(text)
-    docs = [Document(page_content=text, metadata={"source": KB_FILE.name})]
-    chunks = CharacterTextSplitter(separator="", chunk_size=250, chunk_overlap=0).split_documents(docs)
-    vectorstore.reset_collection()
-    vectorstore.add_documents(chunks)
+    """Bring the index in line with the help center and write the manifest. Returns the new manifest."""
+    previous = read_manifest()
+    articles = split_articles(text)
+    new = {a["article_id"]: a["sha256"] for a in articles}
+    full = previous.get("chunking") != CHUNKING
+    old = {} if full else previous.get("articles", {})
+    changed = sorted(a for a in new.keys() | old.keys() if new.get(a) != old.get(a))
+    if full:
+        vectorstore.reset_collection()
+    elif changed:
+        vectorstore.delete(ids=[a for a in changed if a in old])
+    docs = [Document(page_content=f"{a['title']}\n\n{a['content']}",
+                     metadata={"article_id": a["article_id"], "title": a["title"], "source": KB_FILE.name})
+            for a in articles if a["article_id"] in changed]
+    if docs:
+        vectorstore.add_documents(docs, ids=[d.metadata["article_id"] for d in docs])
     manifest = {
         "file": KB_FILE.name,
         "file_sha256": sha256(text),
         "index_version": sha256(text)[:12],
         "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "chunking": CHUNKING,
         "articles": new,
-        "changed_articles": sorted(a for a in new.keys() | old.keys() if new.get(a) != old.get(a)),
-        "chunks": len(chunks),
+        "changed_articles": changed,
+        "chunks": len(articles),
     }
     MANIFEST.write_text(json.dumps(manifest, indent=2))
     return manifest
@@ -76,11 +92,11 @@ def ensure_index(vectorstore: Chroma) -> str:
     """Re-index if the help-center file changed since the last build. Returns the index version."""
     text = KB_FILE.read_text()
     manifest = read_manifest()
-    if manifest.get("file_sha256") == sha256(text):
+    if manifest.get("file_sha256") == sha256(text) and manifest.get("chunking") == CHUNKING:
         return manifest["index_version"]
     with _lock:
         manifest = read_manifest()
-        if manifest.get("file_sha256") != sha256(text):
+        if manifest.get("file_sha256") != sha256(text) or manifest.get("chunking") != CHUNKING:
             manifest = build(vectorstore, text)
             print(f"Re-indexed {KB_FILE.name}: version {manifest['index_version']}, "
                   f"changed articles: {', '.join(manifest['changed_articles']) or 'none'}", flush=True)
@@ -93,7 +109,7 @@ def open_vectorstore() -> Chroma:
 
 def main():
     m = build(open_vectorstore(), KB_FILE.read_text())
-    print(f"Indexed {m['chunks']} chunks from {m['file']} (version {m['index_version']}); "
+    print(f"Indexed {m['chunks']} articles from {m['file']} (version {m['index_version']}); "
           f"changed articles: {', '.join(m['changed_articles']) or 'none'}")
 
 

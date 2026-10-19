@@ -65,13 +65,18 @@ class EscalateToHuman(unittest.TestCase):
 
 class FakeStore:
     def __init__(self):
-        self.docs, self.resets = [], 0
+        self.docs, self.resets, self.added = {}, 0, []
 
     def reset_collection(self):
-        self.docs, self.resets = [], self.resets + 1
+        self.docs, self.resets = {}, self.resets + 1
 
-    def add_documents(self, docs):
-        self.docs += docs
+    def delete(self, ids):
+        for i in ids:
+            self.docs.pop(i, None)
+
+    def add_documents(self, docs, ids):
+        self.added += ids
+        self.docs.update(zip(ids, docs))
 
 
 class EnsureIndex(unittest.TestCase):
@@ -97,14 +102,28 @@ class EnsureIndex(unittest.TestCase):
         self.assertEqual(ingest.ensure_index(self.store), v1)
         self.assertEqual(self.store.resets, 1)
 
-    def test_file_change_reindexes_and_names_changed_articles(self):
+    def test_one_document_per_article(self):
+        ingest.ensure_index(self.store)
+        self.assertEqual(sorted(self.store.docs), ["A01", "A02"])
+        self.assertEqual(self.store.docs["A01"].metadata["title"], "Shipping")
+        self.assertIn("Free over $75.", self.store.docs["A01"].page_content)
+
+    def test_file_change_reindexes_only_changed_articles(self):
         v1 = ingest.ensure_index(self.store)
+        self.store.added.clear()
         ingest.KB_FILE.write_text(self.KB.replace("$75", "$99"))
         v2 = ingest.ensure_index(self.store)
         self.assertNotEqual(v1, v2)
-        self.assertEqual(self.store.resets, 2)
+        self.assertEqual(self.store.resets, 1)
+        self.assertEqual(self.store.added, ["A01"])
         self.assertEqual(ingest.read_manifest()["changed_articles"], ["A01"])
-        self.assertIn("$99", "".join(d.page_content for d in self.store.docs))
+        self.assertIn("$99", self.store.docs["A01"].page_content)
+
+    def test_removed_article_is_deleted(self):
+        ingest.ensure_index(self.store)
+        ingest.KB_FILE.write_text(self.KB.split("## [A02]")[0])
+        ingest.ensure_index(self.store)
+        self.assertEqual(sorted(self.store.docs), ["A01"])
 
 
 if __name__ == "__main__":
