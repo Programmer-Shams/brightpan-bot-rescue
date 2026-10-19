@@ -4,11 +4,15 @@ Run: .venv/bin/uvicorn bot.app:app --port 8003
 Request and response shape match the Demo 1 endpoint, so eval/run_eval.py works against it.
 """
 import json
+import re
 import sys
+import threading
 import time
 import traceback
-from datetime import datetime, timezone
+import uuid
+from datetime import date, datetime, timezone
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI
 from langchain.agents import create_agent
@@ -23,9 +27,10 @@ from envfile import load_env  # noqa: E402
 from ingest import ensure_index, open_vectorstore  # noqa: E402
 
 MODEL = load_env().get("OPENAI_MODEL", "gpt-5.5")
-SYSTEM_PROMPT = "You are a helpful assistant for Brightpan. Answer the customer's question."
+SYSTEM_PROMPT = (ROOT / "bot" / "system_prompt.md").read_text()
 
 LOG_FILE = ROOT / "logs" / "chat.log"
+HANDOFFS = ROOT / "logs" / "handoffs.jsonl"  # stands in for the support team's queue
 ORDERS = {o["order_number"]: o for o in json.loads((ROOT / "data" / "orders.json").read_text())}
 vectorstore = open_vectorstore()
 ensure_index(vectorstore)
@@ -72,7 +77,35 @@ def lookup_order(order_number: str, email: str) -> str:
     return json.dumps({"result": "match", "order": view})
 
 
-TOOLS = [search_help_center, lookup_order]
+_handoff_lock = threading.Lock()
+
+
+@tool
+def escalate_to_human(
+    summary: str,
+    reason: Literal["refund", "damaged_or_wrong_item", "warranty", "order_change", "complaint", "other"],
+    email: str = "",
+    order_number: str = "",
+) -> str:
+    """Hand the case to the support team, who reply by email within 1 business day. Give a short factual summary,
+    plus the customer's email and order number if they gave them."""
+    handoff = {
+        "handoff_id": f"H-{uuid.uuid4().hex[:10]}",
+        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "reason": reason,
+        "summary": summary.strip()[:1000],
+        "email": email.strip()[:200],
+        "order_number": order_number.strip().lstrip("#")[:20],
+    }
+    with _handoff_lock:
+        HANDOFFS.parent.mkdir(exist_ok=True)
+        with HANDOFFS.open("a") as f:
+            f.write(json.dumps(handoff) + "\n")
+    return json.dumps({"result": "saved", "handoff_id": handoff["handoff_id"],
+                       "message": "Saved for the support team. They reply by email within 1 business day."})
+
+
+TOOLS = [search_help_center, lookup_order, escalate_to_human]
 app = FastAPI()
 
 
@@ -98,7 +131,8 @@ def chat(req: ChatRequest):
     index_version = None
     try:
         index_version = ensure_index(vectorstore)
-        prompt = SYSTEM_PROMPT + (f"\nToday's date: {req.today}." if req.today else "")
+        today = req.today if req.today and re.fullmatch(r"\d{4}-\d{2}-\d{2}", req.today) else date.today().isoformat()
+        prompt = SYSTEM_PROMPT.replace("{{TODAY}}", today)
         agent = create_agent(llm, TOOLS, system_prompt=prompt)
         result = agent.invoke({"messages": [{"role": "user", "content": req.message}]})
     except Exception:
@@ -110,7 +144,7 @@ def chat(req: ChatRequest):
         return reply
 
     messages = result["messages"]
-    tools_called, lookup, order = [], None, None
+    tools_called, lookup, order, handoff_id = [], None, None, None
     for m in messages:
         for call in getattr(m, "tool_calls", None) or []:
             tools_called.append(call["name"])
@@ -124,6 +158,11 @@ def chat(req: ChatRequest):
                 order = {k: found["order"][k] for k in ("order_number", "fulfillment_status")}
             elif lookup != "match":
                 lookup = "no_match"
+        if m.type == "tool" and m.name == "escalate_to_human":
+            try:
+                handoff_id = json.loads(m.content).get("handoff_id") or handoff_id
+            except json.JSONDecodeError:
+                pass
 
     reply = {
         "answer": messages[-1].text.strip(),
@@ -135,8 +174,8 @@ def chat(req: ChatRequest):
         "lookup": lookup,
         "lookup_verified": lookup == "match",
         "order": order,
-        "handoff_id": None,
-        "escalated": False,
+        "handoff_id": handoff_id,
+        "escalated": handoff_id is not None,
         "latency_ms": round((time.perf_counter() - started) * 1000),
         "model": MODEL,
         "index_version": index_version,

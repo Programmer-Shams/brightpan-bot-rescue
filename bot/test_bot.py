@@ -48,6 +48,21 @@ class LookupOrder(unittest.TestCase):
         self.assertNotIn("1002", app.failed_lookups)
 
 
+class EscalateToHuman(unittest.TestCase):
+    def test_saves_handoff_and_returns_id(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(app, "HANDOFFS", Path(tmp) / "handoffs.jsonl"):
+            r = json.loads(app.escalate_to_human.invoke(
+                {"summary": "Kettle arrived with a cracked lid", "reason": "damaged_or_wrong_item",
+                 "email": "tom.walsh@example.com", "order_number": "#1012"}))
+            saved = json.loads(app.HANDOFFS.read_text().splitlines()[0])
+        self.assertEqual(r["result"], "saved")
+        self.assertEqual(saved["handoff_id"], r["handoff_id"])
+        self.assertEqual(saved["order_number"], "1012")
+
+    def test_prompt_has_date_placeholder(self):
+        self.assertIn("{{TODAY}}", app.SYSTEM_PROMPT)
+
+
 class FakeStore:
     def __init__(self):
         self.docs, self.resets = [], 0
