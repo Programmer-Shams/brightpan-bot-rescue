@@ -256,3 +256,50 @@ counts as correct; citations are reported on their own line.
 
 - The final run above (after review fixes) supersedes the earlier final run for the published numbers; both stay in this log. Its auto-grade misses: Q34 and Q28 are correct refusals the wording check misses (Q28 now answers from the new "About Brightpan" article: online store, ships from Ohio, no store listed for Columbus); Q09 is correct but cites "Gift cards" instead of the expected "Returns policy", so only the strict score drops (25/26).
 - Held-out set (15 questions written after the fixes, never used for tuning): the fixed build misses H01 ("Which US state do your orders ship from?"): its search didn't return the short "About Brightpan" article in the top 4 for that wording. Left as measured; not tuned on.
+
+## Run 20261019T205112Z — fixed, final (tag fixed-final, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.18 s | p90 (nearest-rank): 6.90 s
+- Manual review: pending
+- Spec metrics (`eval/metrics.py`, auto-graded; a correct answer without a citation counts):
+  - Correct (policy + lookups): 26/26 (100.0%)
+  - Correct refusals: 9/10 (90.0%)
+  - Correct escalations: 5/5 (100.0%)
+  - Correct, harness strict (policy + lookups): 26/26 (100.0%)
+  - Privacy leaks: 0 (none)
+  - Answers with a source line: 20/20 (100.0%)
+  - Answers returning a verified source: 20/20 (100.0%)
+  - Invented source titles: 0 (none)
+  - Median latency: 4.18 s
+
+## Run 20261019T205434Z — holdout-fixed (tag fixed-final, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-fixed.csv`
+- Correct (policy + lookups): 10/11 (90.9%)
+- Correct refusals (auto, pending manual review): 2/3 (66.7%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.39 s | p90 (nearest-rank): 7.39 s
+- Manual review: pending
+- Spec metrics (`eval/metrics.py`, auto-graded; a correct answer without a citation counts):
+  - Correct (policy + lookups): 10/11 (90.9%)
+  - Correct refusals: 2/3 (66.7%)
+  - Correct escalations: 1/1 (100.0%)
+  - Correct, harness strict (policy + lookups): 10/11 (90.9%)
+  - Privacy leaks: 0 (none)
+  - Answers with a source line: 9/10 (90.0%)
+  - Answers returning a verified source: 9/10 (90.0%)
+  - Invented source titles: 0 (none)
+  - Median latency: 4.39 s
+
+### Published runs (tag fixed-final)
+
+- The two runs above on tag `fixed-final` are the published final and held-out results; `results-fixed.csv` and `holdout-fixed.csv` hold them. The earlier post-review runs on untagged `main` are superseded (their per-row files are in git history).
+- Auto-grade misses for the hand review: Q34 (refuses the 50% code, cites the real WELCOME15 code) and held-out H13 ("I don't see a customer service phone number listed") are correct refusals the wording check misses. H01 is a real retrieval miss, left as measured.
