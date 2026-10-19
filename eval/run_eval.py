@@ -33,9 +33,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 from envfile import load_env  # noqa: E402
 
-TESTSET = ROOT / "eval" / "testset.csv"
+TESTSET = ROOT / "eval" / "testset-v2.csv"
 ORDERS = ROOT / "data" / "orders.json"
-KB = ROOT / "kb" / "help-center.md"
+KB = ROOT / "kb" / "help-center-v2.md"
 LOG = ROOT / "eval" / "results-log.md"
 FROZEN_TODAY = "2026-10-18"
 
