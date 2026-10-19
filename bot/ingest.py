@@ -1,6 +1,7 @@
 """Keep a local Chroma index of the help center in sync with the file.
 
-One document per help-center article (each "## [Axx] Title" section), stored under its article id.
+One document per help-center article (each "## [Axx] Title" section), stored under its article id; the text
+before the first article (store name, where it ships from, product lines) is article A00, "About Brightpan".
 Run once to build it: python bot/ingest.py. The app also calls ensure_index() before every answer:
 when the help-center file's hash differs from the manifest, only the articles whose hash changed are re-indexed.
 """
@@ -27,6 +28,7 @@ COLLECTION = "brightpan"
 EMBED_MODEL = "text-embedding-3-small"
 CHUNKING = "article"  # a manifest built with other chunking triggers a full rebuild
 _HEADING = re.compile(r"^## \[(A\d+)\] (.+)$", re.M)
+INTRO_ID, INTRO_TITLE = "A00", "About Brightpan"
 _lock = threading.Lock()
 
 
@@ -42,8 +44,24 @@ def sha256(text: str) -> str:
 
 def split_articles(text: str) -> list:
     parts = _HEADING.split(text)
-    return [{"article_id": parts[i], "title": parts[i + 1].strip(), "content": parts[i + 2].strip(),
-             "sha256": sha256(parts[i + 1] + parts[i + 2])} for i in range(1, len(parts), 3)]
+    articles = [{"article_id": parts[i], "title": parts[i + 1].strip(), "content": parts[i + 2].strip()}
+                for i in range(1, len(parts), 3)]
+    intro = re.sub(r"^# .*$", "", parts[0], count=1, flags=re.M).strip()  # drop the page title line
+    if intro:
+        articles.insert(0, {"article_id": INTRO_ID, "title": INTRO_TITLE, "content": intro})
+    for a in articles:
+        a["sha256"] = sha256(a["title"] + "\n" + a["content"])
+    return articles
+
+
+def check_articles(articles: list) -> None:
+    """Refuse a help-center file that would empty or break the index."""
+    ids = [a["article_id"] for a in articles if a["article_id"] != INTRO_ID]
+    if not ids:
+        raise ValueError("no '## [Axx] Title' articles found")
+    duplicates = sorted({i for i in ids if ids.count(i) > 1})
+    if duplicates:
+        raise ValueError(f"duplicate article ids: {', '.join(duplicates)}")
 
 
 def article_hashes(text: str) -> dict:
@@ -61,6 +79,7 @@ def build(vectorstore: Chroma, text: str) -> dict:
     """Bring the index in line with the help center and write the manifest. Returns the new manifest."""
     previous = read_manifest()
     articles = split_articles(text)
+    check_articles(articles)
     new = {a["article_id"]: a["sha256"] for a in articles}
     full = previous.get("chunking") != CHUNKING
     old = {} if full else previous.get("articles", {})
@@ -97,7 +116,14 @@ def ensure_index(vectorstore: Chroma) -> str:
     with _lock:
         manifest = read_manifest()
         if manifest.get("file_sha256") != sha256(text) or manifest.get("chunking") != CHUNKING:
-            manifest = build(vectorstore, text)
+            try:
+                manifest = build(vectorstore, text)
+            except ValueError as e:
+                if not manifest:
+                    raise
+                print(f"NOT re-indexing {KB_FILE.name}: {e}. Still answering from version "
+                      f"{manifest['index_version']}.", file=sys.stderr, flush=True)
+                return manifest["index_version"]
             print(f"Re-indexed {KB_FILE.name}: version {manifest['index_version']}, "
                   f"changed articles: {', '.join(manifest['changed_articles']) or 'none'}", flush=True)
         return manifest["index_version"]
