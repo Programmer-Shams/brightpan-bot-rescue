@@ -28,7 +28,7 @@ SYSTEM_PROMPT = "You are a helpful assistant for Brightpan. Answer the customer'
 ORDERS = {o["order_number"]: o for o in json.loads((ROOT / "data" / "orders.json").read_text())}
 vectorstore = Chroma(collection_name=COLLECTION, embedding_function=embeddings(), persist_directory=str(CHROMA_DIR))
 retriever = vectorstore.as_retriever(search_kwargs={"k": 1})
-llm = ChatOpenAI(model=MODEL, reasoning_effort="low", api_key=load_env()["OPENAI_API_KEY"])
+llm = ChatOpenAI(model=MODEL, reasoning_effort="low", use_responses_api=True, api_key=load_env()["OPENAI_API_KEY"])
 
 
 @tool
