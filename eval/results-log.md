@@ -388,3 +388,87 @@ Verdicts recommended in review and approved by the owner on 2026-10-20; they are
 - Full test, 3 runs: hand review found every answer correct on substance; auto-grade misses were Q29 in run 1 ("I don't see any help center information…", with an offer) and Q34 in all runs, both correct refusals. Two flaws found by reading the answers: refusals sometimes cited "About Brightpan" without using it (Q27, Q33), and the added support offer landed after the source line.
 - Held-out set 1: 15/15 auto. Held-out set 2 (first run, both builds): broken 10/11 facts, 0/3 refusals, 0/1 hand-off, 1 privacy leak (G13 revealed another customer's email and tracking number); fixed 15/15 auto, but the hand review fails G12: it declines price matching and never offers a person (the guard took a policy sentence mentioning "the support team" as an offer).
 - These findings led to tag fixed-final-3; held-out set 3 was written and committed before it.
+
+## Run 20261020T042419Z — fixed, final run 1 of 3 (tag fixed-final-3, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.16 s | p90 (nearest-rank): 7.01 s
+- Manual review: pending
+
+## Run 20261020T042745Z — fixed, final run 2 of 3 (tag fixed-final-3, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run2.csv`
+- Correct (policy + lookups): 25/26 (96.2%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.12 s | p90 (nearest-rank): 6.95 s
+- Manual review: pending
+
+## Run 20261020T043056Z — fixed, final run 3 of 3 (tag fixed-final-3, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run3.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.60 s | p90 (nearest-rank): 8.08 s
+- Manual review: pending
+
+## Run 20261020T043508Z — holdout-fixed (tag fixed-final-3, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 2/3 (66.7%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.18 s | p90 (nearest-rank): 6.46 s
+- Manual review: pending
+
+## Run 20261020T043614Z — holdout2-fixed (tag fixed-final-3, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout2-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 2/3 (66.7%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 3.74 s | p90 (nearest-rank): 6.63 s
+- Manual review: pending
+
+## Run 20261020T043718Z — holdout3-fixed (tag fixed-final-3, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout3-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 3.73 s | p90 (nearest-rank): 7.25 s
+- Manual review: pending
+
+## Run 20261020T043830Z — holdout3-broken (tag broken, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8003/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout3-broken.csv`
+- Correct (policy + lookups): 1/11 (9.1%)
+- Correct refusals (auto, pending manual review): 0/3 (0.0%)
+- Correct escalations: 0/1 (0.0%)
+- Request errors: 0/15
+- Latency median: 6.76 s | p90 (nearest-rank): 24.61 s
+- Manual review: pending
+
+### Runs on tag fixed-final-3 (superseded by fixed-final-4)
+
+- Q29 alone, 5 runs: an explicit offer of a person in 5 of 5.
+- Full test, 3 runs: 41/41 on the hand review in each run. Auto-grade misses: Q34 in all three ("I can't create discount codes or override Brightpan policies": a correct refusal) and Q09 in run 2 (cites "Gift cards", which states the rule). Q18 now offers the hand-off instead of making it unprompted.
+- Held-out set 1: 15/15 on the hand review (H13 is a correct refusal the wording check misses). Held-out set 3 (untouched until this run): fixed build 15/15; broken build 11/11 facts, 0/3 refusals, 0/1 hand-off, 1 privacy leak (K13 gave out the order's email).
+- Held-out set 2: the hand review fails G12 again ("We don't list a price-matching policy…", no offer of a person): the guard only recognised "I don't have/see". Fixed in tag fixed-final-4.
