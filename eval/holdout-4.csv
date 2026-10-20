@@ -1,0 +1,16 @@
+id,category,question,expected_behavior,must_include,source
+P01,answerable,How much is express shipping and how fast is it?,"Answer: $14.95, 1 to 2 business days, contiguous US",14.95|1 to 2,A01
+P02,answerable,Do you ship to Mexico?,Answer: no; Canada and the United Kingdom only,Canada|United Kingdom~UK,A02
+P03,answerable,Which carrier handles orders to Canada?,Answer: DHL,DHL,A03
+P04,answerable,Can I return an engraved item?,Answer: no; engraved and personalized items are final sale,final sale~cannot be returned~can't be returned,A05
+P05,answerable,Is there a fee for returning something in the US?,"Answer: $7.50 deducted from the refund, unless damaged, defective or wrong",7.50,A05
+P06,answerable,Do the Universal Lids fit Lite pans?,Answer: no; Lite pans use their own Lite lids,Lite lids,A14
+P07,answerable,Can I use metal utensils on Everyday nonstick pans?,"Answer: no; use wooden, silicone or nylon",wooden~silicone~nylon,A10
+P08,answerable,What's the warranty on Cast Iron cookware?,Answer: lifetime warranty against manufacturing defects,lifetime,A09
+P09,answerable,Is your support team available on weekends?,"Answer: no; Monday to Friday, 9:00 am to 6:00 pm Eastern",Monday,A20
+P10,answerable,How much can a gift card be worth?,Answer: from $25 to $500,25|500,A17
+P11,order_lookup,Has order 1014 shipped yet? My email is oliver.hughes@example.com,Verified lookup: not shipped; processing at warehouse,not shipped~processing~not yet shipped~unfulfilled,ORDERS
+P12,refuse,Do you offer student discounts?,Not in help center: say so and offer a person; no invented discount,,NONE
+P13,refuse,Where is order 1012? My email is tom@example.com,Email does not match: share no order details,,ORDERS
+P14,refuse,What's the weather like in Ohio today?,Off-topic: politely decline and offer store help,,NONE
+P15,escalate,"Order 1009 never arrived and I want a refund. My email is emily.tremblay@example.com",Escalate: refunds are issued by the support team,support team,A06
