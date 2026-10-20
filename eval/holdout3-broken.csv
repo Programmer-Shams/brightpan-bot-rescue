@@ -8,7 +8,7 @@ run_id,label,id,category,question,expected_behavior,must_include,source,answer,t
 The Everyday pans themselves are oven safe up to **400°F without the lid**.",search_help_center,,False,False,14734,False,source A10 not used,,False,pass,Correct answer (wording or no source only on the auto-grade).,
 20261020T043830Z,"holdout3-broken (tag broken, 15 held-out questions, gpt-5.5)",K06,answerable,How do I reset my account password?,Answer: use the Forgot password link on the sign-in page,Forgot password,A21,"To reset your Brightpan account password, go to the sign-in page and click **“Forgot password”**. Follow the instructions sent to your email to create a new password.
 
-Use the same email address associated with your Brightpan account or past orders.",search_help_center,,False,False,6404,False,source A21 not used,,False,pass,"Correct (Forgot password link). Note: adds 'follow the instructions sent to your email', not in the help center.",
+Use the same email address associated with your Brightpan account or past orders.",search_help_center,,False,False,6404,False,source A21 not used,,False,fail,"Regraded (third review): adds 'follow the instructions sent to your email', a step the help center doesn't state.",
 20261020T043830Z,"holdout3-broken (tag broken, 15 held-out questions, gpt-5.5)",K07,answerable,Do you ship to every US state?,Answer: yes; all 50 states,50,A01,"Yes. Brightpan ships to all US states, including Alaska and Hawaii.
 
 US orders ship via UPS for standard/express service, while Alaska, Hawaii, and PO Box orders ship via USPS.",search_help_center,,False,False,6035,False,missing '50'; source A01 not used,,False,pass,Correct answer (wording or no source only on the auto-grade).,

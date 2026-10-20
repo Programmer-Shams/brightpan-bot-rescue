@@ -145,17 +145,26 @@ _EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 
 # A reply that says it doesn't have the information must always offer a person (rule 3 of the prompt). The model
 # usually does; when it doesn't (typically when it also shares related information), the offer is added here.
-_DECLINE = re.compile(r"\b(?:I|we) (?:don[’']t|do not) (?:have|see|list|show)\b|\b(?:doesn[’']t|does not) (?:list|mention|say|"
-                      r"state)\b|\b(?:isn[’']t|is not|aren[’']t|are not) (?:listed|mentioned)\b|\bno information\b", re.I)
-# An actual offer to involve a person; a policy that merely mentions "the support team" doesn't count.
-_OFFERS_HELP = re.compile(r"connect you|I can (?:pass|hand|send|forward|share)\b|would you like (?:me|the support team)|"
-                          r"want me to|if you(?:[’']d| would) like,? I can|happy to (?:connect|pass)", re.I)
-_TRAILING_SOURCE = re.compile(r"\s*\(Sources?:(?:[^()]|\([^()]*\))*\)\s*$", re.I)
+_DECLINE = re.compile(
+    r"\b(?:I|we) (?:don[’']t|do not) (?:have|see|list|show)\b"
+    r"|\b(?:doesn[’']t|does not) (?:list|mention|say|state)\b"
+    r"|\b(?:isn[’']t|is not|aren[’']t|are not) (?:listed|mentioned)\b"
+    r"|\bthe help center (?:doesn[’']t|does not) (?:cover|include)\b|\b(?:isn[’']t|is not) (?:covered|included) (?:in|by) the help center\b"
+    r"|\b(?:couldn[’']t|could not|can[’']t|cannot) find\b|\bunable to (?:find|confirm)\b"
+    r"|\bno information\b|\bnothing (?:in the help center|about)\b", re.I)
+# An actual offer to involve a person; a policy that merely mentions "the support team" doesn't count, and
+# neither does an offer of something else ("I can share the returns policy").
+_OFFERS_HELP = re.compile(
+    r"connect you|\b(?:pass|hand|send|forward|refer) (?:this|it|that|your \w+) (?:on )?to (?:the |our )?support\b"
+    r"|would you like (?:me to )?(?:connect|pass|hand|ask)|\bI(?:[’']ll| can| could) (?:ask|check with) (?:the |our )?support team\b",
+    re.I)
+_TRAILING_SOURCE = re.compile(r"\s*\(Sources?:(?:[^()]|\([^()]*\))*\)[.\s]*$", re.I)
 SUPPORT_OFFER = "I can connect you with the support team if you'd like."
 
 
-def ensure_support_offer(answer: str, escalated: bool) -> str:
-    if escalated or not _DECLINE.search(answer) or _OFFERS_HELP.search(answer):
+def ensure_support_offer(answer: str, escalated: bool, looked_up_order: bool = False) -> str:
+    # Hand-offs already involve a person; order-lookup replies ("I couldn't find a match…") ask for details instead.
+    if escalated or looked_up_order or not _DECLINE.search(answer) or _OFFERS_HELP.search(answer):
         return answer
     source = _TRAILING_SOURCE.search(answer)  # keep the citation as the last line
     if source:
@@ -322,7 +331,8 @@ def chat(req: ChatRequest):
                               config={"recursion_limit": MAX_AGENT_STEPS})
         turn = result["messages"][len(history):]
         s = summarize(turn)
-        answer = ensure_support_offer(turn[-1].text.strip(), s["handoff_id"] is not None)
+        answer = ensure_support_offer(turn[-1].text.strip(), s["handoff_id"] is not None,
+                                      "lookup_order" in s["tools_called"])
         cited = cited_articles(answer, s["retrieved"])
         save_turn(req.session_id, req.message, answer)
         reply = {
@@ -343,9 +353,11 @@ def chat(req: ChatRequest):
             "error": False,
         }
     except GraphRecursionError:
+        # A real (polite) answer, not a crash: the page shows it as such; step_limit marks it in the log.
         reply = {"answer": "I couldn't finish looking that up. Could you rephrase the question? I can also connect you "
                            "with the support team.", "session_id": req.session_id, "index_version": index_version,
-                 "error": True, "latency_ms": round((time.perf_counter() - started) * 1000)}
+                 "tools_called": [], "article_ids_used": [], "sources": [], "escalated": False, "step_limit": True,
+                 "error": False, "latency_ms": round((time.perf_counter() - started) * 1000)}
     except Exception:
         traceback.print_exc()
         reply = {"answer": "Sorry, something went wrong. Please try again.", "session_id": req.session_id,

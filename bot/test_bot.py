@@ -94,7 +94,11 @@ class SupportOffer(unittest.TestCase):
         self.assertTrue(out.endswith("(Source: Discount codes)"))
 
     def test_other_decline_wordings(self):
-        for a in ("We don’t list a price-matching policy for other stores like Amazon. (Source: Price adjustments)",
+        for a in ("The help center doesn't cover a rewards scheme.",
+                  "That isn't covered in the help center.",
+                  "I couldn't find any information about engraving.",
+                  "I'm unable to confirm a restock date.",
+                  "There's nothing in the help center about student pricing.","We don’t list a price-matching policy for other stores like Amazon. (Source: Price adjustments)",
                   "The help center doesn't mention a loyalty program.",
                   "A rewards program isn't listed in the help center.",
                   "There is no information about wholesale pricing."):
@@ -128,9 +132,34 @@ class SupportOffer(unittest.TestCase):
                   "I can only help with Brightpan orders, products, and policies.",
                   "The warranty does not cover normal wear and tear. (Source: Warranty)",
                   "Discount codes do not apply to gift cards. (Source: Discount codes)",
-                  "I couldn't find a match for that order number and email combination.",
-                  "There's no carrier or tracking number listed yet."):
+                  "There's no carrier or tracking number listed yet.",
+                  "Dishwasher damage is not covered by the warranty. (Source: Warranty)",
+                  "We don't ship to Australia; only Canada and the United Kingdom. (Source: International shipping)"):
             self.assertEqual(app.ensure_support_offer(a, False), a)
+
+
+class SupportOfferEdges(unittest.TestCase):
+    def test_offers_of_something_else_dont_count(self):
+        for a in ("I don't have that. I can share our returns policy instead.",
+                  "I don't have that. Want me to look up your order?",
+                  "I don't have that. If you'd like, I can explain the warranty."):
+            self.assertIn(app.SUPPORT_OFFER, app.ensure_support_offer(a, False), a)
+
+    def test_real_offers_count(self):
+        for a in ("I don't have that. I can pass this to the support team.",
+                  "I don't have that. Would you like me to connect you with someone?",
+                  "I don't have that. I can ask the support team for you."):
+            self.assertEqual(app.ensure_support_offer(a, False), a)
+
+    def test_order_lookup_replies_left_alone(self):
+        a = "I couldn't find a match for that order number and email. Please check both and try again."
+        self.assertEqual(app.ensure_support_offer(a, False, looked_up_order=True), a)
+        self.assertEqual(app.ensure_support_offer("I don't have your email yet. Please send it.", False, True),
+                         "I don't have your email yet. Please send it.")
+
+    def test_source_followed_by_period(self):
+        out = app.ensure_support_offer("I don't have that. (Source: Returns policy).", False)
+        self.assertEqual(out, "I don't have that.\n\n" + app.SUPPORT_OFFER + " (Source: Returns policy).")
 
 
 class EscalateToHuman(unittest.TestCase):

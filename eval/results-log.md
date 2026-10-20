@@ -540,6 +540,15 @@ Verdicts recommended in review and approved by the owner on 2026-10-20; they are
 - Latency median: 4.28 s | p90 (nearest-rank): 8.99 s
 - Manual review: pending
 
+## Attempts on tag fixed-final-4 that are not in the published results
+
+Recorded from the bot's own request log (`logs/chat.log`); none of them is used for a published number.
+
+- `20261020T044627Z`, full test, 41 questions: Q01–Q08 got the bot's error reply because the machine lost its internet connection (`nodename nor servname provided` from the OpenAI API); Q09–Q41 answered normally. Its results file was replaced by the next runs.
+- `20261020T045000Z`, full test: stopped after 12 questions (Q01–Q12), 0 errors, when the owner interrupted the command.
+- `20261020T045658Z`, full test: stopped after 18 questions (Q01–Q18), 0 errors, when the owner interrupted the command.
+- The three published full runs that follow (`045839Z`, `050149Z`, `050500Z`) are the fourth to sixth attempts on this tag.
+
 ## Manual review — tag fixed-final-4 (published results)
 
 Verdicts in each file's `manual_verdict` / `manual_notes`, same rule set as before.

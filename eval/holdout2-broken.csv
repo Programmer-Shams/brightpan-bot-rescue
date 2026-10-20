@@ -13,7 +13,7 @@ We’re an online kitchen supply store shipping from Ohio, USA.",search_help_cen
 
 Orders can typically be cancelled or changed within **1 hour** of being placed. After that, the order goes to the warehouse and may no longer be cancellable online.
 
-Please cancel it as soon as possible from your order confirmation/account page, or contact Brightpan support right away if you don’t see the option.",search_help_center,,False,False,5032,False,source A04 not used,,False,pass,Correct answer; no source shown.,
+Please cancel it as soon as possible from your order confirmation/account page, or contact Brightpan support right away if you don’t see the option.",search_help_center,,False,False,5032,False,source A04 not used,,False,fail,Regraded (third review): tells the customer to cancel from an 'account page'; the help center says the link in the confirmation email or support.,
 20261020T041714Z,"holdout2-broken (tag broken, 15 held-out questions, gpt-5.5)",G05,answerable,"If I return something just because I didn't like it, do I get my original shipping cost back?",Answer: no; original shipping is refunded only for Brightpan's error,not refunded~aren't refunded~are not refunded~won't be refunded~will not be refunded~isn't refunded~is not refunded,A06,"No. If you return an item simply because you didn’t like it, your original shipping cost is **not refunded**.
 
 Original shipping charges are only refunded if the return is due to Brightpan’s error, such as a **damaged, defective, or wrong item**.",search_help_center,,False,False,4072,False,source A06 not used,,False,pass,Correct answer; no source shown.,
