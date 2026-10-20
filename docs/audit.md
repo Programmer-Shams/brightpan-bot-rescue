@@ -5,7 +5,7 @@
 
 ## Summary
 
-The bot answers 41 test questions with the help center open beside it. It got 18 of 26 policy and order questions right, declined 3 of the 10 questions it should have declined, and handed off none of the 5 cases that need a person. One answer showed a customer's order to someone using a different email address.
+The bot answers 41 test questions with the help center open beside it. It got 17 of 26 policy and order questions right, declined 2 of the 10 questions it should have declined, and handed off none of the 5 cases that need a person: 19 of 41 overall. One answer showed a customer's order to someone using a different email address.
 
 The most serious problem is privacy: anyone who knows or guesses an order number can read that order's tracking number, items and dates. Next is outdated policy: the bot still quotes the old free-shipping threshold and the old newsletter code, so customers are told shipping is free when it isn't. The rest are answers that invent details, miss half a policy or can't show where they came from.
 
@@ -21,11 +21,12 @@ All five problems have a specific cause in the code, and each has a small fix. N
 
 | Measure | Result |
 | --- | --- |
-| Policy and order questions answered correctly | 18 of 26 (69.2%) |
-| Questions correctly declined | 3 of 10 (30.0%) |
+| Policy and order questions answered correctly | 17 of 26 (65.4%) |
+| Questions correctly declined | 2 of 10 (20.0%) |
 | Cases handed to a person | 0 of 5 (0%) |
 | Order data shown to the wrong person | 1 answer (Q31) |
 | Policy answers that show a source | 0 of 20 (0%) |
+| All 41 questions | 19 of 41 (46.3%) |
 | Median reply time | 4.99 s |
 
 A correct answer counts as correct even without a source; sources are measured on their own line.
@@ -74,6 +75,8 @@ It noticed the mismatch and shared the details anyway. In a separate check in th
 - Q28, "Do you have a physical store in Columbus?": "Brightpan is an online-only store and does not have a physical retail location in Columbus." The help center calls Brightpan an online store but says nothing about physical stores; the bot stated a fact it doesn't have.
 - Q33, "Are you hiring?": "we're not hiring or accepting job applications." The help center says nothing about jobs.
 - Q30, "What's the best way to cook a steak?": a seven-step recipe instead of a polite decline.
+- Q16, "Can I use two discount codes on one order?": right that it's one code per order, then adds "Discount codes can't be combined or stacked with other codes or sitewide promotions." The help center says nothing about sitewide promotions.
+- Q35, free engraving: "engraving doesn't appear to be a current service". The help center lists engraved items (as final sale), so this contradicts it.
 - Q40, an address change after the 1-hour window: "Please send me the new full shipping address… I'll help you proceed from there." The bot can't change addresses; it collects personal details and implies it will act on them.
 - Q36–Q40: none of the 5 cases that need a person (damaged item, refund request, bank dispute, warranty claim, late order change) was handed off.
 

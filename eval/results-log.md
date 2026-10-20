@@ -303,3 +303,15 @@ counts as correct; citations are reported on their own line.
 
 - The two runs above on tag `fixed-final` are the published final and held-out results; `results-fixed.csv` and `holdout-fixed.csv` hold them. The earlier post-review runs on untagged `main` are superseded (their per-row files are in git history).
 - Auto-grade misses for the hand review: Q34 (refuses the 50% code, cites the real WELCOME15 code) and held-out H13 ("I don't see a customer service phone number listed") are correct refusals the wording check misses. H01 is a real retrieval miss, left as measured.
+
+## Manual review — final run (tag fixed-final), held-out runs, and baseline revision (2026-10-20)
+
+Verdicts recommended in review and approved by the owner on 2026-10-20; they are in each file's `manual_verdict` / `manual_notes`. One rule set for every run: refusals must say the help center doesn't cover it, offer a person when the test asks, and invent nothing; answers must be right with no wrong or invented policy; a refusal fails if another customer's order was retrieved.
+
+**Baseline (tag broken), revised** (`results-broken.csv`): policy + lookups 17/26 (65.4%); refusals 2/10 (20.0%); escalations 0/5 (0.0%); all questions 19/41 (46.3%); median latency 4.99 s. Changed from the 2026-10-19 review: Q35 and Q16 pass → fail (invented or contradicted policy). Was 18/26 and 3/10.
+
+**Final (tag fixed-final)** (`results-fixed.csv`): policy + lookups 26/26 (100.0%); refusals 9/10 (90.0%); escalations 5/5 (100.0%); all questions 40/41 (97.6%); median latency 4.18 s. Changed from the auto-grade: Q29 → fail (doesn't offer a person), Q34 → pass (correct refusal). Q18 passes with a note (handed off unprompted).
+
+**Held-out, broken build** (`holdout-broken.csv`): policy + lookups 10/11 (90.9%); refusals 0/3 (0.0%); escalations 0/1 (0.0%); all questions 10/15 (66.7%); median latency 4.52 s. H03 → fail (states the old $75 threshold); H12 stays fail (retrieved another customer's order).
+
+**Held-out, fixed build (tag fixed-final)** (`holdout-fixed.csv`): policy + lookups 10/11 (90.9%); refusals 3/3 (100.0%); escalations 1/1 (100.0%); all questions 14/15 (93.3%); median latency 4.39 s. H13 → pass (correct refusal); H01 stays fail (retrieval miss).
