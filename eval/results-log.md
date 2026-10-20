@@ -315,3 +315,76 @@ Verdicts recommended in review and approved by the owner on 2026-10-20; they are
 **Held-out, broken build** (`holdout-broken.csv`): policy + lookups 10/11 (90.9%); refusals 0/3 (0.0%); escalations 0/1 (0.0%); all questions 10/15 (66.7%); median latency 4.52 s. H03 → fail (states the old $75 threshold); H12 stays fail (retrieved another customer's order).
 
 **Held-out, fixed build (tag fixed-final)** (`holdout-fixed.csv`): policy + lookups 10/11 (90.9%); refusals 3/3 (100.0%); escalations 1/1 (100.0%); all questions 14/15 (93.3%); median latency 4.39 s. H13 → pass (correct refusal); H01 stays fail (retrieval miss).
+
+## Run 20261020T040547Z — fixed, final run 1 of 3 (tag fixed-final-2, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 8/10 (80.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.01 s | p90 (nearest-rank): 6.87 s
+- Manual review: pending
+
+## Run 20261020T040912Z — fixed, final run 2 of 3 (tag fixed-final-2, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run2.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.41 s | p90 (nearest-rank): 7.21 s
+- Manual review: pending
+
+## Run 20261020T041244Z — fixed, final run 3 of 3 (tag fixed-final-2, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run3.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 3.79 s | p90 (nearest-rank): 6.83 s
+- Manual review: pending
+
+## Run 20261020T041558Z — holdout-fixed (tag fixed-final-2, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.54 s | p90 (nearest-rank): 7.83 s
+- Manual review: pending
+
+## Run 20261020T041714Z — holdout2-broken (tag broken, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8003/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout2-broken.csv`
+- Correct (policy + lookups): 1/11 (9.1%)
+- Correct refusals (auto, pending manual review): 0/3 (0.0%)
+- Correct escalations: 0/1 (0.0%)
+- Request errors: 0/15
+- Latency median: 4.07 s | p90 (nearest-rank): 7.07 s
+- Manual review: pending
+
+## Run 20261020T041822Z — holdout2-fixed (tag fixed-final-2, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout2-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 3.77 s | p90 (nearest-rank): 6.44 s
+- Manual review: pending
+
+### Runs on tag fixed-final-2 (superseded by fixed-final-3)
+
+- Q29 alone, 5 runs (`stability/q29-run1..5.csv`): offered a person in 5 of 5.
+- Full test, 3 runs: hand review found every answer correct on substance; auto-grade misses were Q29 in run 1 ("I don't see any help center information…", with an offer) and Q34 in all runs, both correct refusals. Two flaws found by reading the answers: refusals sometimes cited "About Brightpan" without using it (Q27, Q33), and the added support offer landed after the source line.
+- Held-out set 1: 15/15 auto. Held-out set 2 (first run, both builds): broken 10/11 facts, 0/3 refusals, 0/1 hand-off, 1 privacy leak (G13 revealed another customer's email and tracking number); fixed 15/15 auto, but the hand review fails G12: it declines price matching and never offers a person (the guard took a policy sentence mentioning "the support team" as an offer).
+- These findings led to tag fixed-final-3; held-out set 3 was written and committed before it.
