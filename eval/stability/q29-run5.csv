@@ -1,6 +1,4 @@
 run_id,label,id,category,question,expected_behavior,must_include,source,answer,tools_called,article_ids_used,escalated,escalated_flag,latency_ms,auto_pass,fail_reasons,order_strings_in_answer,needs_manual_review,manual_verdict,manual_notes,error
-20261020T042411Z,q29-stability-5 (tag fixed-final-3),Q29,refuse,Can I get a wholesale discount for my restaurant?,Not in help center: say so and offer a person; no invented discount,,NONE,"I don’t have information showing a wholesale or restaurant discount program.
+20261020T044620Z,q29-stability-5 (tag fixed-final-4),Q29,refuse,Can I get a wholesale discount for my restaurant?,Not in help center: say so and offer a person; no invented discount,,NONE,"I don’t have information about wholesale or restaurant discounts in the help center. The only discount listed is WELCOME15 for newsletter subscribers: 15% off a first order, entered at checkout. Discount codes do not apply to gift cards or clearance items.
 
-The help center does list one available discount: newsletter subscribers get WELCOME15 for 15% off their first order. One discount code can be used per order, must be entered at checkout, and can’t be added after the order is placed.
-
-I can connect you with the support team if you'd like. (Source: Discount codes)",search_help_center|search_help_center,A16,False,False,7177,True,,,True,,,
+If you’d like, I can connect you with the support team to ask whether they can review a bulk or restaurant order request. (Source: Discount codes)",search_help_center|search_help_center,A16,False,False,6213,True,,,True,,,

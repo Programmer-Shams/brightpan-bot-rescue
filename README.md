@@ -18,7 +18,8 @@ Before/after rescue of a small Python + LangChain support chatbot for Brightpan 
 | `fix-3-grounded-prompt` | Grounded instructions ([bot/system_prompt.md](bot/system_prompt.md)) and an `escalate_to_human` tool |
 | `fix-4-chunking` | One index document per help-center article; only changed articles are re-indexed |
 | `fix-5-retrieval` | Top 4 articles with ids and titles; answers cite "(Source: …)"; cited articles returned with the reply |
-| `fixed-final` | After an independent code review: hand-offs ask for a reply email and attach it to the same case; short conversation memory (fixed build only; the broken build keeps none); the help-center intro indexed as "About Brightpan"; capped agent runs; sturdier citation parsing and index rebuilds. The published final and held-out runs use this tag. |
+| `fixed-final` | After an independent code review: hand-offs ask for a reply email and attach it to the same case; short conversation memory (fixed build only; the broken build keeps none); the help-center intro indexed as "About Brightpan"; capped agent runs; sturdier citation parsing and index rebuilds. |
+| `fixed-final-2` … `fixed-final-4` | A reply that says it doesn't have the information always offers a person (instruction plus a code check); the "About Brightpan" article comes with every search and the bot searches again before giving up; it's cited only when used. **The published final and held-out runs use `fixed-final-4`.** |
 
 ## Setup
 
@@ -57,10 +58,10 @@ Citations are measured two ways: answers that show a "(Source: …)" line, and a
 
 ### Held-out questions
 
-`eval/holdout.csv` has 15 questions written after the fixes and never used for tuning (paraphrases and help-center facts the main test doesn't ask about). They were committed before their first run. On them, policy accuracy did not improve: both builds get the facts about equally right. The gains that carry over are refusals, hand-offs, privacy and verified sources.
+Three sets of 15 new questions (`eval/holdout.csv`, `holdout-2.csv`, `holdout-3.csv`), each committed before its first run. When a set exposed a problem that was then fixed, the next set was written before the fix, so set 3 was never used for any change. Hand-reviewed results: broken 30/45, fixed 45/45.
 
 ```bash
-python3 eval/run_holdout.py --endpoint http://127.0.0.1:8004/chat --label holdout-rerun --out eval/holdout-rerun.csv
+python3 eval/run_holdout.py --set holdout-3 --endpoint http://127.0.0.1:8004/chat --label holdout-rerun --out eval/holdout-rerun.csv
 ```
 
 ### Unit tests
@@ -91,6 +92,6 @@ docs/                 audit report, architecture diagram
 - Conversation memory (last 10 turns, 30 minutes), the order-lookup lockout and the chat page's rate limit live in memory in one process and reset on restart.
 - Five wrong emails lock an order number for 15 minutes, so someone who knows an order number can briefly lock its owner out of chat lookups; the owner can still reach the support team.
 - Hand-offs without an email are saved and the bot asks for one; until the customer gives it, the support team has only the chat session id to go on.
-- Retrieval can still miss a short article: on the held-out set, "Which US state do your orders ship from?" did not retrieve the "About Brightpan" article (H01).
+- Whether a reply "declines" is recognised from its wording, so the code check that adds an offer of a person can miss an unusual phrasing; the instruction to offer one still applies.
 - Change detection hashes the help-center file before every answer. That is cheap for one file and one process; several processes would need a shared index and manifest.
 - Model answers vary a little between runs, and the auto-grader checks wording, so it can miss a correct answer or pass a wrong one. Results in this repo are as measured; manual verdicts are final.

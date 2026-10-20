@@ -2,11 +2,11 @@
 
 Draft for the owner to publish. Every number comes from the hand-reviewed results files `eval/results-broken.csv` and `eval/results-fixed.csv`; see `eval/results-log.md`.
 
-**Title:** Fixing an AI Chatbot That Gives Wrong Answers: 46% → 98% on the Same Test
+**Title:** Fixing an AI Chatbot That Gives Wrong Answers: 46% → 100% on the Same Test
 
 **Role:** AI developer: audit, fixes and testing
 
-**Description:** A Python/LangChain support bot was giving outdated policies, inventing answers and showing one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes by severity, fixed them one at a time and reran the same 41-question test after each fix: 46% → 98% correct, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. Deliverables: written audit, fixes as separate commits, before/after results. Built with Python, LangChain, OpenAI and Chroma.
+**Description:** A Python/LangChain support bot was giving outdated policies, inventing answers and showing one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes by severity, fixed them one at a time and reran the same 41-question test after each fix: 46% → 100% correct, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. Deliverables: written audit, fixes as separate commits, before/after results. Built with Python, LangChain, OpenAI and Chroma.
 
 **Skills:** Python, LangChain, AI Chatbot, RAG, OpenAI API
 

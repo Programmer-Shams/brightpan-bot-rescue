@@ -30,14 +30,16 @@ Store owners who come to me with a chatbot rarely want a new one. They have a bo
 
 ## The same test, before and after
 
-Every answer in the first and last runs was reviewed by hand; the hand verdict is final.
+Every answer was reviewed by hand; the hand verdict is final. The fixed bot was run three times, to check that the result is stable rather than one lucky run.
 
 | Reviewed by hand | Policy + order answers (26) | Correct refusals (10) | Hand-offs (5) | All 41 questions |
 | --- | --- | --- | --- | --- |
 | Before (tag `broken`) | 17 | 2 | 0 | **19 (46%)** |
-| After (tag `fixed-final`) | 26 | 9 | 5 | **40 (98%)** |
+| After, run 1 (tag `fixed-final-4`) | 26 | 10 | 5 | **41 (100%)** |
+| After, run 2 | 26 | 10 | 5 | **41 (100%)** |
+| After, run 3 | 26 | 10 | 5 | **41 (100%)** |
 
-Privacy leaks went from 1 to 0, answers with a verified source from 0% to 100%, and the median reply time from 4.99 s to 4.18 s.
+Privacy leaks went from 1 to 0, answers with a verified source from 0% to 100%, and the median reply time from 4.99 s to 3.96 s.
 
 ### Which fix moved which number
 
@@ -51,11 +53,10 @@ The same 41 questions after every fix, scored by the automatic grader so each st
 | Fix 3: grounded instructions + hand-off tool | 20 | 9 | 5 | 0 | 0 (0%) |
 | Fix 4: one piece per article | 24 | 9 | 5 | 0 | 0 (0%) |
 | Fix 5: top 4 articles + sources | 26 | 9 | 5 | 0 | 20 (100%) |
-| Final, tag `fixed-final` | 26 | 9 | 5 | 0 | 20 (100%) |
+| Final, tag `fixed-final-4` | 26 | 9 | 5 | 0 | 20 (100%) |
 
 [eval/results-log.md](../eval/results-log.md) has every run, including the ones that failed for outside reasons.
 
-The one remaining miss (Q29) declines a wholesale question correctly but doesn't offer to connect the customer with a person, which the test asks for.
 
 ### What it sounds like
 
@@ -73,9 +74,9 @@ Before:
 
 After:
 
-> Yes, if you’re in the contiguous US, standard shipping is $6.95 because free standard shipping starts at $99 or more, calculated after discounts and before tax. Express shipping is $14.95 and is never free.
+> Yes, if your shipping address is in the contiguous US, you’d pay standard shipping because free standard shipping starts at $99 or more, calculated after discounts and before tax. Standard shipping is $6.95.
 >
-> For Alaska, Hawaii, Canada, or the UK, different shipping rates apply and free shipping does not apply. (Source: Shipping options and costs (United States); International shipping)
+> Express shipping is $14.95 and is never free. Alaska, Hawaii, and international orders have different shipping costs and do not get free shipping. (Source: Shipping options and costs (United States))
 
 **Q31. Customer:** Where is order 1002? My email is wrong.person@example.com
 
@@ -92,7 +93,7 @@ Before:
 
 After:
 
-> I couldn’t verify that order with the order number and email provided. Please double-check both the order number and the email address used at checkout, then send them again.
+> I couldn’t find a match for that order number and email combination. Please double-check both the order number and the email address used at checkout, then send them again.
 
 **Q26. Customer:** Is the Pro skillet PFAS-free?
 
@@ -102,7 +103,9 @@ Before:
 
 After:
 
-> I don’t have information saying whether the Pro skillet is PFAS-free. I can connect you with the support team if you’d like.
+> I don’t have a help-center article that directly says whether the Pro skillet is PFAS-free.
+>
+> What I can confirm is that Pro is a 5-ply stainless steel line, while Everyday is the nonstick line. If you’d like, I can connect you with the support team to confirm the PFAS details. (Source: About Brightpan)
 
 **Q38. Customer:** This is the third time I've written to you. I'm disputing the charge with my bank.
 
@@ -116,16 +119,24 @@ Before:
 
 After:
 
-> I’m sorry this has been so frustrating. I’ve sent your case to the support team for review.
+> I’m sorry this has been so frustrating. I’ve passed your complaint to the support team.
 >
-> Please share the email address they should use to reply to you. If you have your order number too, please include it.
+> Please send the email address they should reply to, and I’ll add it to the case.
 
 ## Checking it on questions it was never tuned on
 
-After the fixes I wrote 15 new questions and committed them before running them once on each build. Overall: 10/15 before, 14/15 after. The honest reading:
+A bot can be tuned until it passes its own test. To check that the fixes hold on new questions, I wrote three more sets of 15 questions, each committed to the repository before its first run. When a set exposed a real problem and I fixed it, the next set was written before that fix, so there was always one set nothing had been tuned on.
 
-- **Facts didn't improve on new questions** (10/11 both before and after). The broken bot handles easy facts well when they aren't split across pieces and haven't changed. Its one miss was quoting the old $75 threshold. The fixed bot's one miss is a retrieval gap: asked "Which US state do your orders ship from?", its search didn't surface the short "About Brightpan" article.
-- **What carried over is everything that keeps a store out of trouble:** declining instead of inventing (0/3 → 3/3), handing a warranty claim to a person, never touching another customer's order, and showing a verifiable source.
+| Held-out questions | Broken bot | Fixed bot |
+| --- | --- | --- |
+| Set 1 (written after fix 5) | 10/15 | 15/15 |
+| Set 2 (written after the first review fixes) | 9/15 | 15/15 |
+| Set 3 (never used for any change) | 11/15 | 15/15 |
+| **All 45** | **30/45** | **45/45** |
+
+- **The broken bot gets easy facts right** when they haven't changed and aren't split across pieces; its misses are the ones that hurt: an old price, a wrong product list.
+- **It failed every refusal and hand-off on all three sets**, and on sets 2 and 3 it gave a stranger another customer's order details and email address.
+- **The fixed bot answered all 45 correctly**, including set 3, which was never used for any change.
 
 ## What the testing caught along the way
 
@@ -133,6 +144,8 @@ After the fixes I wrote 15 new questions and committed them before running them 
 - **The automatic grader is a first pass, not the verdict.** It passed an invented "PFAS-free" answer because the answer contained the words "do not have", and it failed correct refusals worded differently than expected. Every final number here is from the hand review.
 - **One fix, measured alone, looked like it did nothing.** Re-indexing the current help center fixed the three outdated answers, but three other answers flipped to wrong in the same run, because the faults still unfixed made the bot erratic. The log records both.
 - **Runs that failed for outside reasons are kept, marked invalid:** a network outage, and a scripting mistake of mine that sent requests to the wrong port. Each was rerun.
+- **Reading every answer caught what the grader couldn't.** In one run the wholesale question (Q29) declined honestly but never offered a person. Making that reliable took three rounds: a rule in the instructions, then a code check that adds the offer when it's missing, then widening that check after a new question showed a decline worded "We don't list…" slipping past it. Each round was checked against every earlier answer for false triggers.
+- **A fact in the wrong place was invisible to search.** "Where do you ship from?" lived in a short introduction that ranked 13th for shipping questions. That article now comes with every search, and the bot searches again with different words before saying it doesn't know.
 - **The independent code review found real issues**, all fixed and retested:
   - hand-offs promised an email reply with no address to send it to (the bot now asks, and attaches the email to the same case);
   - the indexer dropped the help center's introduction;

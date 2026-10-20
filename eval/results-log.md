@@ -472,3 +472,80 @@ Verdicts recommended in review and approved by the owner on 2026-10-20; they are
 - Full test, 3 runs: 41/41 on the hand review in each run. Auto-grade misses: Q34 in all three ("I can't create discount codes or override Brightpan policies": a correct refusal) and Q09 in run 2 (cites "Gift cards", which states the rule). Q18 now offers the hand-off instead of making it unprompted.
 - Held-out set 1: 15/15 on the hand review (H13 is a correct refusal the wording check misses). Held-out set 3 (untouched until this run): fixed build 15/15; broken build 11/11 facts, 0/3 refusals, 0/1 hand-off, 1 privacy leak (K13 gave out the order's email).
 - Held-out set 2: the hand review fails G12 again ("We don't list a price-matching policy…", no offer of a person): the guard only recognised "I don't have/see". Fixed in tag fixed-final-4.
+
+
+## Run 20261020T045839Z — fixed, final run 1 of 3 (tag fixed-final-4, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 3.96 s | p90 (nearest-rank): 6.83 s
+- Manual review: pending
+
+## Run 20261020T050149Z — fixed, final run 2 of 3 (tag fixed-final-4, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run2.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 3.99 s | p90 (nearest-rank): 7.05 s
+- Manual review: pending
+
+## Run 20261020T050500Z — fixed, final run 3 of 3 (tag fixed-final-4, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run3.csv`
+- Correct (policy + lookups): 25/26 (96.2%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 3.86 s | p90 (nearest-rank): 6.39 s
+- Manual review: pending
+
+## Run 20261020T050807Z — holdout-fixed (tag fixed-final-4, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.26 s | p90 (nearest-rank): 6.59 s
+- Manual review: pending
+
+## Run 20261020T050917Z — holdout2-fixed (tag fixed-final-4, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout2-fixed.csv`
+- Correct (policy + lookups): 10/11 (90.9%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.01 s | p90 (nearest-rank): 5.17 s
+- Manual review: pending
+
+## Run 20261020T051020Z — holdout3-fixed (tag fixed-final-4, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout3-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.28 s | p90 (nearest-rank): 8.99 s
+- Manual review: pending
+
+## Manual review — tag fixed-final-4 (published results)
+
+Verdicts in each file's `manual_verdict` / `manual_notes`, same rule set as before.
+
+- Q29 alone, 5 runs (`stability/q29-run1..5.csv`): an explicit offer of a person in 5 of 5.
+- Full test, 3 runs (`results-fixed.csv`, `results-fixed-run2.csv`, `results-fixed-run3.csv`): **41/41 in each run** (26/26 policy + lookups, 10/10 refusals, 5/5 hand-offs), 0 privacy leaks, 20/20 verified sources. Auto-grade misses corrected by hand: Q34 in all runs (correct refusal) and Q09 in run 3 (cites "Gift cards", which states the rule).
+- Held-out set 1: 15/15 (`holdout-fixed.csv`). Held-out set 2: 15/15 (`holdout2-fixed.csv`; G04 says "1-hour window", the auto-grade wanted "1 hour"). Held-out set 3, never used for any change: 15/15 (`holdout3-fixed.csv`).
+- Broken build on the same held-out sets (hand review): set 1 10/15, set 2 9/15 (`holdout2-broken.csv`; G13 leaked another customer's email), set 3 11/15 (`holdout3-broken.csv`; K13 leaked another customer's email): 30/45.
+- Before vs after on the 41-question test, hand-reviewed: 19/41 (46.3%) → 41/41 (100%).
