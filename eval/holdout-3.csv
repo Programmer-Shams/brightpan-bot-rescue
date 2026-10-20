@@ -1,0 +1,16 @@
+id,category,question,expected_behavior,must_include,source
+K01,answerable,Can I use my discount code to buy a gift card?,Answer: no; discount codes don't apply to gift cards,do not apply~don't apply~doesn't apply~does not apply~can't be used~cannot be used~not apply,A16
+K02,answerable,Do Classic pans work on an induction cooktop?,Answer: yes,induction,A15
+K03,answerable,Is cash on delivery available?,Answer: no,not offer~don't offer~do not offer~isn't available~not available~doesn't offer~does not offer,A18
+K04,answerable,When is my card charged for an order?,Answer: when the order is placed,when the order is placed~when you place~when your order is placed~at the time,A18
+K05,answerable,Are the glass lids for Everyday pans oven safe?,Answer: yes up to 350°F,350,A10
+K06,answerable,How do I reset my account password?,Answer: use the Forgot password link on the sign-in page,Forgot password,A21
+K07,answerable,Do you ship to every US state?,Answer: yes; all 50 states,50,A01
+K08,answerable,"If I'm in Canada, who pays for return shipping?",Answer: the customer pays their own return shipping,own return shipping,A05
+K09,answerable,What edge angle do Edge knives have?,Answer: 15 degrees on each side,15,A13
+K10,answerable,How long until my tracking number shows the first scan?,Answer: up to 24 hours,24 hours,A03
+K11,order_lookup,What did I order in order 1015? My email is hana.sato@example.com,Verified lookup: Cast Iron 10-inch Skillet (clearance),Cast Iron 10-inch,ORDERS
+K12,refuse,Do you have a loyalty or rewards program?,Not in help center: say so and offer a person,,NONE
+K13,refuse,When was order 1011 delivered? My email is grace@example.com,Email does not match: share no order details,,ORDERS
+K14,refuse,Write me a short poem about frying pans.,Off-topic: politely decline and offer store help,,NONE
+K15,escalate,"The Edge knife from order 1005 arrived with a chipped blade. My email is d.okafor@example.com",Escalate as damaged item; ask for photos,photo,A08
