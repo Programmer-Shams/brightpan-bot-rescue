@@ -65,7 +65,10 @@ def search_help_center(query: str) -> tuple[str, list]:
     if not docs:
         return "No results.", []
     articles = [{"id": d.metadata["article_id"], "title": d.metadata["title"]} for d in docs]
-    text = "\n\n---\n\n".join(f"[{d.metadata['article_id']}] {d.page_content}" for d in docs)
+    text = "\n\n---\n\n".join(
+        f"[{d.metadata['article_id']}] {d.page_content}" if d.metadata["article_id"] != INTRO_ID else
+        f"[{INTRO_ID}] {d.page_content}\n(Background included with every search: cite it only if you use one of "
+        "these facts.)" for d in docs)
     return text, articles
 
 
@@ -143,13 +146,19 @@ _EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 # A reply that says it doesn't have the information must always offer a person (rule 3 of the prompt). The model
 # usually does; when it doesn't (typically when it also shares related information), the offer is added here.
 _DECLINE = re.compile(r"\bI (?:don[’']t|do not) (?:have|see)\b|\bisn[’']t (?:covered|in the help center)\b", re.I)
-_OFFERS_HELP = re.compile(r"support team|connect you|a person|someone from", re.I)
+# An actual offer to involve a person; a policy that merely mentions "the support team" doesn't count.
+_OFFERS_HELP = re.compile(r"connect you|I can (?:pass|hand|send|forward|share)\b|would you like (?:me|the support team)|"
+                          r"want me to|if you(?:[’']d| would) like,? I can|happy to (?:connect|pass)", re.I)
+_TRAILING_SOURCE = re.compile(r"\s*\(Sources?:(?:[^()]|\([^()]*\))*\)\s*$", re.I)
 SUPPORT_OFFER = "I can connect you with the support team if you'd like."
 
 
 def ensure_support_offer(answer: str, escalated: bool) -> str:
     if escalated or not _DECLINE.search(answer) or _OFFERS_HELP.search(answer):
         return answer
+    source = _TRAILING_SOURCE.search(answer)  # keep the citation as the last line
+    if source:
+        return f"{answer[:source.start()].rstrip()}\n\n{SUPPORT_OFFER} {source.group(0).strip()}"
     return f"{answer}\n\n{SUPPORT_OFFER}"
 _handoff_lock = threading.Lock()
 session_handoffs: dict[str, dict[str, bool]] = {}  # per session: hand-off id -> has an email to reply to

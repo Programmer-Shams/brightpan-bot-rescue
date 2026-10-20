@@ -89,14 +89,29 @@ class CitedArticles(unittest.TestCase):
 class SupportOffer(unittest.TestCase):
     def test_decline_without_offer_gets_one(self):
         a = "I don't have information about wholesale discounts. Newsletter subscribers get WELCOME15. (Source: Discount codes)"
-        self.assertTrue(app.ensure_support_offer(a, False).endswith(app.SUPPORT_OFFER))
+        out = app.ensure_support_offer(a, False)
+        self.assertIn(app.SUPPORT_OFFER, out)
+        self.assertTrue(out.endswith("(Source: Discount codes)"))
 
     def test_curly_apostrophe_and_dont_see(self):
         self.assertIn(app.SUPPORT_OFFER, app.ensure_support_offer("I don’t see a phone number listed.", False))
 
+    def test_policy_mentioning_support_team_is_not_an_offer(self):
+        a = ("I don't have information about price matching. If a Brightpan price drops within 14 days, you can ask "
+             "the support team for a price adjustment. (Source: Price adjustments)")
+        out = app.ensure_support_offer(a, False)
+        self.assertIn(app.SUPPORT_OFFER, out)
+        self.assertTrue(out.endswith("(Source: Price adjustments)"))
+
+    def test_offer_goes_before_a_source_with_parentheses(self):
+        out = app.ensure_support_offer("I don't have that. (Source: Shipping options and costs (United States))", False)
+        self.assertEqual(out, "I don't have that.\n\n" + app.SUPPORT_OFFER + " (Source: Shipping options and costs (United States))")
+
     def test_existing_offer_or_handoff_left_alone(self):
-        a = "I don't have that information. I can connect you with the support team if you'd like."
-        self.assertEqual(app.ensure_support_offer(a, False), a)
+        for a in ("I don't have that information. I can connect you with the support team if you'd like.",
+                  "I don't have that. If you'd like, I can pass this to the support team.",
+                  "I don't have that. Would you like me to ask the support team?"):
+            self.assertEqual(app.ensure_support_offer(a, False), a)
         self.assertEqual(app.ensure_support_offer("I don't have an email for you yet.", True),
                          "I don't have an email for you yet.")
 
