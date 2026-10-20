@@ -93,6 +93,13 @@ class SupportOffer(unittest.TestCase):
         self.assertIn(app.SUPPORT_OFFER, out)
         self.assertTrue(out.endswith("(Source: Discount codes)"))
 
+    def test_other_decline_wordings(self):
+        for a in ("We don’t list a price-matching policy for other stores like Amazon. (Source: Price adjustments)",
+                  "The help center doesn't mention a loyalty program.",
+                  "A rewards program isn't listed in the help center.",
+                  "There is no information about wholesale pricing."):
+            self.assertIn(app.SUPPORT_OFFER, app.ensure_support_offer(a, False), a)
+
     def test_curly_apostrophe_and_dont_see(self):
         self.assertIn(app.SUPPORT_OFFER, app.ensure_support_offer("I don’t see a phone number listed.", False))
 
@@ -118,7 +125,11 @@ class SupportOffer(unittest.TestCase):
     def test_normal_answers_left_alone(self):
         for a in ("Standard shipping is $6.95. (Source: Shipping options and costs (United States))",
                   "I couldn't verify that order with the order number and email provided.",
-                  "I can only help with Brightpan orders, products, and policies."):
+                  "I can only help with Brightpan orders, products, and policies.",
+                  "The warranty does not cover normal wear and tear. (Source: Warranty)",
+                  "Discount codes do not apply to gift cards. (Source: Discount codes)",
+                  "I couldn't find a match for that order number and email combination.",
+                  "There's no carrier or tracking number listed yet."):
             self.assertEqual(app.ensure_support_offer(a, False), a)
 
 

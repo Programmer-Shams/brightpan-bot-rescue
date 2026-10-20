@@ -145,7 +145,8 @@ _EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
 
 # A reply that says it doesn't have the information must always offer a person (rule 3 of the prompt). The model
 # usually does; when it doesn't (typically when it also shares related information), the offer is added here.
-_DECLINE = re.compile(r"\bI (?:don[’']t|do not) (?:have|see)\b|\bisn[’']t (?:covered|in the help center)\b", re.I)
+_DECLINE = re.compile(r"\b(?:I|we) (?:don[’']t|do not) (?:have|see|list|show)\b|\b(?:doesn[’']t|does not) (?:list|mention|say|"
+                      r"state)\b|\b(?:isn[’']t|is not|aren[’']t|are not) (?:listed|mentioned)\b|\bno information\b", re.I)
 # An actual offer to involve a person; a policy that merely mentions "the support team" doesn't count.
 _OFFERS_HELP = re.compile(r"connect you|I can (?:pass|hand|send|forward|share)\b|would you like (?:me|the support team)|"
                           r"want me to|if you(?:[’']d| would) like,? I can|happy to (?:connect|pass)", re.I)
