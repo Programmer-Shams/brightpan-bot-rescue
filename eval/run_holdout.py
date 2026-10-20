@@ -11,7 +11,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_eval  # noqa: E402
 
-run_eval.TESTSET = Path(__file__).resolve().parent / "holdout.csv"
+# --set holdout-2 picks eval/holdout-2.csv (default: eval/holdout.csv).
+name = "holdout"
+if "--set" in sys.argv:
+    i = sys.argv.index("--set")
+    name = sys.argv[i + 1]
+    del sys.argv[i:i + 2]
+run_eval.TESTSET = Path(__file__).resolve().parent / f"{name}.csv"
 
 if __name__ == "__main__":
     run_eval.main()

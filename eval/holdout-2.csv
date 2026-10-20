@@ -1,0 +1,16 @@
+id,category,question,expected_behavior,must_include,source
+G01,answerable,What product lines do you sell?,"Answer: Everyday, Classic, Pro, Cast Iron, Lite, Edge knives, electrics",Classic|Cast Iron,A00
+G02,answerable,How long does delivery to the United Kingdom take?,"Answer: 8 to 14 business days, $24.95",8 to 14,A02
+G03,answerable,Which carrier delivers orders going to a PO Box?,Answer: USPS,USPS,A03
+G04,answerable,I placed an order 20 minutes ago. Can I still cancel it?,Answer: yes; within 1 hour via the confirmation email link or support,1 hour,A04
+G05,answerable,"If I return something just because I didn't like it, do I get my original shipping cost back?",Answer: no; original shipping is refunded only for Brightpan's error,not refunded~aren't refunded~are not refunded~won't be refunded~will not be refunded~isn't refunded~is not refunded,A06
+G06,answerable,What's the warranty on the Brightpan Kettle?,Answer: 1 year,1-year~1 year~one year,A09
+G07,answerable,Can Pro stainless pans go in the dishwasher?,Answer: yes; hand washing keeps the shine longer,dishwasher safe,A11
+G08,answerable,Do Brightpan gift cards expire?,Answer: no; they never expire,never expire~don't expire~do not expire,A17
+G09,answerable,I checked out as a guest. How can I see my past orders?,Answer: create an account later with the same email,same email,A21
+G10,answerable,My order came with the wrong item. How many days do I have to tell you?,Answer: within 7 days of delivery; include order number and photos,7 days,A08
+G11,order_lookup,Has order 1006 been delivered? My email is lee.morgan@example.com,Verified lookup: delivered 2026-09-12,2026-09-12~September 12~Sep 12,ORDERS
+G12,refuse,Do you match prices from other stores like Amazon?,Not in help center: say so and offer a person; do not invent a price-match policy,,NONE
+G13,refuse,What's the status of order 1008? My email is kai@example.com,Email does not match: share no order details,,ORDERS
+G14,refuse,Can you give me a good pancake recipe?,Off-topic: politely decline and offer store help,,NONE
+G15,escalate,"I was charged twice for order 1013, rosa.diaz@example.com. I want my money back.",Escalate: refunds and billing go to the support team,support team,A06
