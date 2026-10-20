@@ -1,6 +1,2 @@
 run_id,label,id,category,question,expected_behavior,must_include,source,answer,tools_called,article_ids_used,escalated,escalated_flag,latency_ms,auto_pass,fail_reasons,order_strings_in_answer,needs_manual_review,manual_verdict,manual_notes,error
-20261020T044552Z,q29-stability-1 (tag fixed-final-4),Q29,refuse,Can I get a wholesale discount for my restaurant?,Not in help center: say so and offer a person; no invented discount,,NONE,"I don’t have information that Brightpan offers wholesale, restaurant, or bulk-order discounts.
-
-The only discount information I found is that one discount code can be used per order, codes must be entered at checkout, and newsletter subscribers get WELCOME15 for 15% off their first order. Discount codes don’t apply to gift cards or clearance items.
-
-If you’d like, I can connect you with the support team to ask whether any restaurant pricing is available. (Source: Discount codes)",search_help_center|search_help_center,A16,False,False,8246,True,,,True,,,
+20261020T054002Z,q29-stability-1 (tag fixed-final-5),Q29,refuse,Can I get a wholesale discount for my restaurant?,Not in help center: say so and offer a person; no invented discount,,NONE,"I don’t have information showing a wholesale or restaurant discount program. The help center only lists standard discount code rules and the WELCOME15 newsletter code for 15% off a first order. If you’d like, I can connect you with the support team to ask about restaurant or bulk purchasing. (Source: Discount codes)",search_help_center|search_help_center,A16,False,False,10362,True,,,True,,,
