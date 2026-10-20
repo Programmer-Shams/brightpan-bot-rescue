@@ -86,6 +86,27 @@ class CitedArticles(unittest.TestCase):
         self.assertEqual(self.cite("No citation here."), [])
 
 
+class SupportOffer(unittest.TestCase):
+    def test_decline_without_offer_gets_one(self):
+        a = "I don't have information about wholesale discounts. Newsletter subscribers get WELCOME15. (Source: Discount codes)"
+        self.assertTrue(app.ensure_support_offer(a, False).endswith(app.SUPPORT_OFFER))
+
+    def test_curly_apostrophe_and_dont_see(self):
+        self.assertIn(app.SUPPORT_OFFER, app.ensure_support_offer("I don’t see a phone number listed.", False))
+
+    def test_existing_offer_or_handoff_left_alone(self):
+        a = "I don't have that information. I can connect you with the support team if you'd like."
+        self.assertEqual(app.ensure_support_offer(a, False), a)
+        self.assertEqual(app.ensure_support_offer("I don't have an email for you yet.", True),
+                         "I don't have an email for you yet.")
+
+    def test_normal_answers_left_alone(self):
+        for a in ("Standard shipping is $6.95. (Source: Shipping options and costs (United States))",
+                  "I couldn't verify that order with the order number and email provided.",
+                  "I can only help with Brightpan orders, products, and policies."):
+            self.assertEqual(app.ensure_support_offer(a, False), a)
+
+
 class EscalateToHuman(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

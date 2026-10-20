@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "bot"))
 sys.path.insert(0, str(ROOT / "scripts"))
 from envfile import load_env  # noqa: E402
-from ingest import ensure_index, open_vectorstore  # noqa: E402
+from ingest import INTRO_ID, ensure_index, open_vectorstore  # noqa: E402
 
 MODEL = load_env().get("OPENAI_MODEL", "gpt-5.5")
 SYSTEM_PROMPT = (ROOT / "bot" / "system_prompt.md").read_text()
@@ -55,8 +55,13 @@ def llm():
 @tool(response_format="content_and_artifact")
 def search_help_center(query: str) -> tuple[str, list]:
     """Search the Brightpan help center for shipping, returns, refunds, warranty, care and payment info.
-    Returns the 4 closest articles; each starts with its id and exact title, like "[A05] Returns policy"."""
-    docs = vectorstore().as_retriever(search_kwargs={"k": 4}).invoke(query)
+    Returns the 4 closest articles, plus the short "About Brightpan" article (store-wide facts such as where orders
+    ship from); each starts with its id and exact title, like "[A05] Returns policy"."""
+    store = vectorstore()
+    docs = store.as_retriever(search_kwargs={"k": 4}).invoke(query)
+    # Store-wide facts live in one short mixed-topic article that ranks low for specific questions; always include it.
+    if not any(d.metadata["article_id"] == INTRO_ID for d in docs):
+        docs += store.get_by_ids([INTRO_ID])
     if not docs:
         return "No results.", []
     articles = [{"id": d.metadata["article_id"], "title": d.metadata["title"]} for d in docs]
@@ -134,6 +139,18 @@ def lookup_order(order_number: str, email: str) -> str:
 
 
 _EMAIL = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+
+# A reply that says it doesn't have the information must always offer a person (rule 3 of the prompt). The model
+# usually does; when it doesn't (typically when it also shares related information), the offer is added here.
+_DECLINE = re.compile(r"\bI (?:don[’']t|do not) (?:have|see)\b|\bisn[’']t (?:covered|in the help center)\b", re.I)
+_OFFERS_HELP = re.compile(r"support team|connect you|a person|someone from", re.I)
+SUPPORT_OFFER = "I can connect you with the support team if you'd like."
+
+
+def ensure_support_offer(answer: str, escalated: bool) -> str:
+    if escalated or not _DECLINE.search(answer) or _OFFERS_HELP.search(answer):
+        return answer
+    return f"{answer}\n\n{SUPPORT_OFFER}"
 _handoff_lock = threading.Lock()
 session_handoffs: dict[str, dict[str, bool]] = {}  # per session: hand-off id -> has an email to reply to
 
@@ -294,8 +311,8 @@ def chat(req: ChatRequest):
         result = agent.invoke({"messages": history + [{"role": "user", "content": req.message}]},
                               config={"recursion_limit": MAX_AGENT_STEPS})
         turn = result["messages"][len(history):]
-        answer = turn[-1].text.strip()
         s = summarize(turn)
+        answer = ensure_support_offer(turn[-1].text.strip(), s["handoff_id"] is not None)
         cited = cited_articles(answer, s["retrieved"])
         save_turn(req.session_id, req.message, answer)
         reply = {
