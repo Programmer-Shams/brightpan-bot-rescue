@@ -12,10 +12,10 @@ Fixing an AI Chatbot That Gave Wrong Answers: 46% → 100%
 AI developer: audit, fixes and testing
 
 ## Project description
-A Python/LangChain support bot was giving outdated policies, inventing answers and showing one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes by severity, fixed them one at a time and reran the same 41-question test after each fix: 46% → 100% correct in three separate runs, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. On 15 new questions never used for any change: 10/15 → 15/15. Deliverables: written audit, fixes as separate commits, before/after results. Built with Python, LangChain, OpenAI and Chroma.
+A Python/LangChain support bot was giving outdated policies, inventing answers and showing one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes by severity, fixed them one at a time (same 41-question test after each), then fixed what a code review found: 46% → 100% correct in 3 separate runs, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. On 15 new questions never used for any change: 10/15 → 15/15. Deliverables: written audit, fixes as separate commits, before/after results. Built with Python, LangChain, OpenAI and Chroma.
 
 Shorter, if Upwork's description box is too small:
-A Python/LangChain support bot gave outdated policies, invented answers and showed one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes, fixed them one at a time and reran the same 41-question test after each fix: 46% → 100% correct, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. Deliverables: written audit, one fix per commit, before/after results.
+A Python/LangChain support bot gave outdated policies, invented answers and showed one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes, fixed them one at a time with the same 41-question test rerun after each, plus fixes from a code review: 46% → 100% correct, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. Deliverables: written audit, one fix per commit, before/after results.
 
 ## Skills
 Python, LangChain, AI Chatbot, RAG, OpenAI API
@@ -28,4 +28,4 @@ Python, LangChain, AI Chatbot, RAG, OpenAI API
 5. 5-screenshot-fixed-vs-broken.png: the same shipping question, broken ($75, free) vs fixed ($6.95 under $99, with source).
 
 Optional text block for the item (from the case study):
-The bot was built quickly, then the store changed two policies and it kept giving the old answers. I wrote a 41-question test first, measured the bot as it was (19/41), wrote an audit with each fault's evidence and root cause, then fixed them in order of risk: privacy, outdated index, ungrounded instructions, bad chunking, weak retrieval. Every answer before and after was reviewed by hand. The fixed bot answered 41/41 in each of three runs and 15/15 on new questions it was never tuned on.
+The bot was built quickly, then the store changed two policies and it kept giving the old answers. I wrote a 41-question test first, measured the bot as it was (19/41), wrote an audit with each fault's evidence and root cause, then fixed them in order of risk: privacy, outdated index, ungrounded instructions, bad chunking, weak retrieval. An independent code review of the result found more issues, which I fixed and retested. Every answer before and after was reviewed by hand. The final bot answered 41/41 in each of three runs and 15/15 on new questions it was never tuned on.
