@@ -19,7 +19,7 @@ Before/after rescue of a small Python + LangChain support chatbot for Brightpan 
 | `fix-4-chunking` | One index document per help-center article; only changed articles are re-indexed |
 | `fix-5-retrieval` | Top 4 articles with ids and titles; answers cite "(Source: …)"; cited articles returned with the reply |
 | `fixed-final` | After an independent code review: hand-offs ask for a reply email and attach it to the same case; short conversation memory (fixed build only; the broken build keeps none); the help-center intro indexed as "About Brightpan"; capped agent runs; sturdier citation parsing and index rebuilds. |
-| `fixed-final-2` … `fixed-final-4` | A reply that says it doesn't have the information always offers a person (instruction plus a code check); the "About Brightpan" article comes with every search and the bot searches again before giving up; it's cited only when used. **The published final and held-out runs use `fixed-final-4`.** |
+| `fixed-final-2` … `fixed-final-5` | A reply that says it doesn't have the information always offers a person (instruction plus a code check); the "About Brightpan" article comes with every search and the bot searches again before giving up, citing it only when used; no yes/no answers the help center doesn't support. **The published final and held-out runs use `fixed-final-5`.** |
 
 ## Setup
 
@@ -58,10 +58,10 @@ Citations are measured two ways: answers that show a "(Source: …)" line, and a
 
 ### Held-out questions
 
-Three sets of 15 new questions (`eval/holdout.csv`, `holdout-2.csv`, `holdout-3.csv`), each committed before its first run. When a set exposed a problem that was then fixed, the next set was written before the fix, so set 3 was never used for any change. Hand-reviewed results: broken 30/45, fixed 45/45.
+Four sets of 15 new questions (`eval/holdout.csv`, `holdout-2.csv`, `holdout-3.csv`, `holdout-4.csv`), each committed before its first run. Sets 1 to 3 each exposed something that was then fixed (the next set was written first), so set 4 is the only one never used for any change. Hand-reviewed results on set 4: broken 10/15, fixed 15/15 (all four sets: broken 38/60, fixed 60/60).
 
 ```bash
-python3 eval/run_holdout.py --set holdout-3 --endpoint http://127.0.0.1:8004/chat --label holdout-rerun --out eval/holdout-rerun.csv
+python3 eval/run_holdout.py --set holdout-4 --endpoint http://127.0.0.1:8004/chat --label holdout-rerun --out eval/holdout-rerun.csv
 ```
 
 ### Unit tests
@@ -92,6 +92,6 @@ docs/                 audit report, architecture diagram
 - Conversation memory (last 10 turns, 30 minutes), the order-lookup lockout and the chat page's rate limit live in memory in one process and reset on restart.
 - Five wrong emails lock an order number for 15 minutes, so someone who knows an order number can briefly lock its owner out of chat lookups; the owner can still reach the support team.
 - Hand-offs without an email are saved and the bot asks for one; until the customer gives it, the support team has only the chat session id to go on.
-- Whether a reply "declines" is recognised from its wording, so the code check that adds an offer of a person can miss an unusual phrasing; the instruction to offer one still applies.
+- Whether a reply "declines" is recognised from its wording, so the code check that adds an offer of a person can miss an unusual phrasing (the instruction to offer one still applies) and occasionally adds an offer to a normal answer. In the published runs it added the offer to 5 of 30 refusals on the main test and 6 of 60 held-out answers; the model wrote it everywhere else.
 - Change detection hashes the help-center file before every answer. That is cheap for one file and one process; several processes would need a shared index and manifest.
 - Model answers vary a little between runs, and the auto-grader checks wording, so it can miss a correct answer or pass a wrong one. Results in this repo are as measured; manual verdicts are final.

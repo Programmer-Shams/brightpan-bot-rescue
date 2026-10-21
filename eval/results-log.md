@@ -598,3 +598,102 @@ Verdicts in each file's `manual_verdict` / `manual_notes`, same rule set as befo
 - Full test run 1 (`results-fixed.csv`) and run 2 (`results-fixed-run2.csv`): **41/41 each on the hand review**. Auto-grade miss: Q34 (correct refusal). The code guard added the offer of a person in 2 answers in run 1 and 1 in run 2.
 - Full test run 3 (`results-fixed-run3.csv`): Q33–Q41 got the bot's error reply because the OpenAI account ran out of credits (`429 insufficient_quota`); Q01–Q32 answered normally. Not used for a published number.
 - Not yet run on this tag: a complete third full run, held-out sets 1–4 on the fixed build, held-out set 4 on the broken build.
+
+## Run 20261021T105404Z — fixed, final run 1 of 3 (tag fixed-final-5, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.45 s | p90 (nearest-rank): 7.18 s
+- Manual review: pending
+
+## Run 20261021T105738Z — fixed, final run 2 of 3 (tag fixed-final-5, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run2.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 3.96 s | p90 (nearest-rank): 7.20 s
+- Manual review: pending
+
+## Run 20261021T110053Z — fixed, final run 3 of 3 (tag fixed-final-5, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 41
+- Results file: `results-fixed-run3.csv`
+- Correct (policy + lookups): 26/26 (100.0%)
+- Correct refusals (auto, pending manual review): 9/10 (90.0%)
+- Correct escalations: 5/5 (100.0%)
+- Request errors: 0/41
+- Latency median: 4.28 s | p90 (nearest-rank): 7.65 s
+- Manual review: pending
+
+## Run 20261021T110424Z — holdout-fixed (tag fixed-final-5, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 2/3 (66.7%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.38 s | p90 (nearest-rank): 7.66 s
+- Manual review: pending
+
+## Run 20261021T110539Z — holdout2-fixed (tag fixed-final-5, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout2-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 2/3 (66.7%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 4.38 s | p90 (nearest-rank): 6.42 s
+- Manual review: pending
+
+## Run 20261021T110647Z — holdout3-fixed (tag fixed-final-5, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout3-fixed.csv`
+- Correct (policy + lookups): 10/11 (90.9%)
+- Correct refusals (auto, pending manual review): 2/3 (66.7%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 3.88 s | p90 (nearest-rank): 6.18 s
+- Manual review: pending
+
+## Run 20261021T110748Z — holdout4-fixed (tag fixed-final-5, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8004/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout4-fixed.csv`
+- Correct (policy + lookups): 11/11 (100.0%)
+- Correct refusals (auto, pending manual review): 3/3 (100.0%)
+- Correct escalations: 1/1 (100.0%)
+- Request errors: 0/15
+- Latency median: 3.96 s | p90 (nearest-rank): 6.35 s
+- Manual review: pending
+
+## Run 20261021T110856Z — holdout4-broken (tag broken, 15 held-out questions, gpt-5.5)
+
+- Endpoint: `http://127.0.0.1:8003/chat` | today=2026-10-18 | questions: 15
+- Results file: `holdout4-broken.csv`
+- Correct (policy + lookups): 1/11 (9.1%)
+- Correct refusals (auto, pending manual review): 1/3 (33.3%)
+- Correct escalations: 0/1 (0.0%)
+- Request errors: 0/15
+- Latency median: 4.23 s | p90 (nearest-rank): 6.06 s
+- Manual review: pending
+
+## Manual review — tag fixed-final-5 (published results)
+
+Run after the OpenAI credits were topped up; every answer reviewed by hand under the same rule set. Verdicts and notes are in each file.
+
+- Full test, 3 fresh runs (`results-fixed.csv`, `results-fixed-run2.csv`, `results-fixed-run3.csv`): **41/41 in each run** (26/26 policy + lookups, 10/10 refusals, 5/5 hand-offs), 0 privacy leaks, 20/20 verified sources. Auto-grade miss corrected by hand: Q34 in every run (correct refusal). The code guard added the offer of a person in 5 of the 30 refusal answers (Q28 x3, Q29, Q33).
+- Held-out sets on the fixed build: set 1 15/15, set 2 15/15, set 3 15/15, **set 4 (never used for any change) 15/15**. Auto-grade misses corrected by hand: H13, G12, K12 (correct refusals), K02 (cites the Classic care article, which states induction). The code guard added the offer in 6 of the 60 answers (5 refusals and P09).
+- Held-out set 4 on the broken build: 10/15 (`holdout4-broken.csv`): P05 omits the $7.50 fee, P12 invents bundles or sale items, P13 leaks another customer's order and email, P14 points to a weather site, P15 no hand-off.
+- Broken build on all four held-out sets (hand review, after the third review's regrades of G04 and K06): 10 + 8 + 10 + 10 = 38/60.
+- Before vs after on the 41-question test, hand-reviewed: 19/41 (46.3%) -> 41/41 (100%) in three runs.
+- The 5 Q29-only runs on this tag (before the credits ran out) offered a person in 5 of 5, all written by the model.
