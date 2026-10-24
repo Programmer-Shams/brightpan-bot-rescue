@@ -2,12 +2,12 @@ import { createHmac, randomBytes } from "node:crypto";
 import type { Build } from "@/lib/types";
 
 // Proxies the page to the two bot builds (FastAPI /chat). The bot URLs stay on the server,
-// and the page needs no CORS setup. Request checks follow the Demo 1 proxy.
+// and the page needs no CORS setup. Request checks follow the support agent project's proxy.
 const ENDPOINTS: Record<Build, string> = {
   broken: process.env.BOT_BROKEN_URL ?? "http://127.0.0.1:8003/chat",
   fixed: process.env.BOT_FIXED_URL ?? "http://127.0.0.1:8004/chat",
 };
-// The demo orders are dated October 2026; the eval harness freezes "today" to the same day.
+// The test orders are dated October 2026; the eval harness freezes "today" to the same day.
 const TODAY = process.env.DEMO_TODAY ?? "2026-10-18";
 const MAX_MESSAGE = 2000;
 // Hosts this page is served from; anything else (e.g. a DNS-rebinding name) is refused.
@@ -20,7 +20,7 @@ const serverSessionId = (clientId: string) =>
 
 export const maxDuration = 120;
 
-// In-memory rate limit for this single-process local demo; one shared bucket. Rejected requests don't count.
+// In-memory rate limit for this single-process local server; one shared bucket. Rejected requests don't count.
 const RATE = { max: 60, windowMs: 5 * 60 * 1000 };
 let hits: number[] = [];
 

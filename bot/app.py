@@ -1,7 +1,7 @@
 """Brightpan support chatbot: FastAPI /chat endpoint backed by a LangChain agent.
 
 Run: .venv/bin/uvicorn bot.app:app --port 8004
-Request and response shape match the Demo 1 endpoint, so eval/run_eval.py works against it.
+Request and response shape match the support agent project's endpoint, so eval/run_eval.py works against it.
 """
 import json
 import re

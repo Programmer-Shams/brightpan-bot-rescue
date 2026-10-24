@@ -1,8 +1,8 @@
 # brightpan-bot-rescue
 
-Before/after rescue of a small Python + LangChain support chatbot for Brightpan Kitchen Supply, a fictional demo store: an audit, five ranked findings, one fix per commit, and the same 41-question test after every fix.
+Before/after rescue of a small Python + LangChain support chatbot for Brightpan Kitchen Supply, an online store: an audit, five ranked findings, one fix per commit, and the same 41-question test after every fix.
 
-**Staged faults on a demo bot.** The scenario: the bot was built quickly by someone else, the store then changed two policies (free shipping threshold $75 → $99, newsletter code WELCOME10 → WELCOME15) and the bot started giving wrong answers. The five faults were planted deliberately for this demo; there is no real client.
+**Portfolio project with planted faults.** The scenario: the bot was built quickly by someone else, the store then changed two policies (free shipping threshold $75 → $99, newsletter code WELCOME10 → WELCOME15) and the bot started giving wrong answers. The five faults were planted deliberately for this portfolio project.
 
 - Audit report: [docs/audit.md](docs/audit.md)
 - Architecture, before and after: [docs/architecture.html](docs/architecture.html) ([PNG](docs/architecture.png))
@@ -45,7 +45,7 @@ npm run dev                        # http://127.0.0.1:3300
 
 ## Run the test
 
-The eval harness is copied from Demo 1 (`brightpan-support-agent`) with only its file paths changed. It sends each of the 41 questions in `eval/testset-v2.csv` as a fresh session and grades the reply.
+The eval harness is copied from the support agent project (`brightpan-support-agent`) with only its file paths changed. It sends each of the 41 questions in `eval/testset-v2.csv` as a fresh session and grades the reply.
 
 ```bash
 python3 eval/run_eval.py --endpoint http://127.0.0.1:8004/chat --label rerun --out eval/results-rerun.csv
@@ -79,7 +79,7 @@ python3 -m unittest eval/test_run_eval.py
 bot/app.py            FastAPI /chat, LangChain agent, tools (search, order lookup, hand-off)
 bot/ingest.py         help-center index: one document per article, hashes, change detection
 bot/system_prompt.md  grounded instructions
-data/orders.json      the demo store's fictional orders
+data/orders.json      the store's test orders
 kb/                   help center as indexed by the broken bot (v1) and as it is now (v2)
 eval/                 test set, harness, results per run, results log
 web/                  chat page (Next.js 16, shadcn/ui)

@@ -1,10 +1,10 @@
 # Case study: fixing a support chatbot that gave wrong answers
 
-**Project:** Brightpan support bot rescue, a portfolio demo on a fictional cookware store
+**Project:** Brightpan support bot rescue, a portfolio project on a cookware store
 **Built with:** Python, LangChain, OpenAI (gpt-5.5, text-embedding-3-small), Chroma, FastAPI, Next.js
 **Code:** [github.com/Programmer-Shams/brightpan-bot-rescue](https://github.com/Programmer-Shams/brightpan-bot-rescue)
 
-**Staged faults on a demo bot.** There is no real client. I built a small support chatbot the way a rushed first version often looks, planted five faults in it, then fixed it as I would a client's bot.
+**Portfolio project with planted faults.** I built a small support chatbot the way a rushed first version often looks, planted five faults in it, then fixed it as I would a client's bot.
 
 ## The problem
 
@@ -158,7 +158,7 @@ A bot can be tuned until it passes its own test. To check that the fixes hold on
 
 ## Limits
 
-- It's a demo: a fictional store, 22 help-center articles, 15 orders, running on one computer.
+- It's a portfolio project: one store, 22 help-center articles, 15 orders, running on one computer.
 - Order checks rely on the order number and email. Five wrong emails lock that order's chat lookups for 15 minutes; a production version would add a one-time code by email.
 - Conversation memory, lockouts and rate limits live in one process and reset on restart.
 - Model wording varies a little between runs; the same test can move by a question or two.

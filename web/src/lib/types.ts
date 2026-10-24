@@ -10,7 +10,7 @@ export interface TestQuestion {
   expected: string;
 }
 
-/** The bot's /chat response (same shape as the Demo 1 endpoint). */
+/** The bot's /chat response (same shape as the support agent project's endpoint). */
 export interface BotReply {
   answer: string;
   tools_called?: string[];

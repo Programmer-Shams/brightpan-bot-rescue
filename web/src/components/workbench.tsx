@@ -154,11 +154,11 @@ export function Workbench({ questions }: { questions: TestQuestion[] }) {
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full border bg-background px-2 py-1 text-xs font-medium focus-visible:outline-2 focus-visible:outline-ring md:px-3"
             >
               <Info className="size-3.5 text-primary" aria-hidden />
-              <span className="sr-only md:not-sr-only">Staged faults on a demo bot</span>
+              <span className="sr-only md:not-sr-only">Faults planted on purpose</span>
             </button>
           </TooltipTrigger>
           <TooltipContent className="max-w-72">
-            Brightpan is a fictional store. The five faults in the broken build were planted on purpose for this demo.
+            Portfolio project. The five faults in the broken build were planted on purpose.
           </TooltipContent>
         </Tooltip>
       </header>
@@ -230,7 +230,7 @@ function Intro({ questions, onPick, disabled }: { questions: TestQuestion[]; onP
           Ask the same question before and after the fix.
         </h1>
         <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-muted-foreground">
-          The broken build is a demo store&apos;s support bot with five faults staged on purpose. The fixed build is
+          The broken build is the store&apos;s support bot with five faults planted on purpose. The fixed build is
           the same bot after the audit. Every answer shows what it was based on.
         </p>
 

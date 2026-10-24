@@ -1,7 +1,7 @@
 # Brightpan support chatbot: audit
 
 **Scope:** the Python + LangChain support bot at tag `broken`, tested on 2026-10-19.
-**Scenario note:** Brightpan is a fictional demo store. The bot's faults were staged for this demo; there is no real client.
+**Scenario note:** this is a portfolio project. The bot's five faults were planted on purpose.
 
 ## Summary
 

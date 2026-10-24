@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Brightpan support bot: before and after",
-  description: "The same questions asked to the broken and the fixed Brightpan support bot. Faults staged on a demo bot.",
+  description: "The same questions asked to the broken and the fixed Brightpan support bot. Faults planted on purpose for this portfolio project.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

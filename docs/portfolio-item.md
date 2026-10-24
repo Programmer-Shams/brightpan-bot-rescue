@@ -12,16 +12,16 @@ Fixing an AI Chatbot That Gave Wrong Answers: 46% → 100%
 AI developer: audit, fixes and testing
 
 ## Project description
-A Python/LangChain support bot was giving outdated policies, inventing answers and showing one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes by severity, fixed them one at a time (same 41-question test after each), then fixed what a code review found: 46% → 100% correct in 3 separate runs, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. On 15 new questions never used for any change: 10/15 → 15/15. Deliverables: written audit, fixes as separate commits, before/after results. Built with Python, LangChain, OpenAI and Chroma.
+A Python/LangChain support bot was giving outdated policies, inventing answers and showing one customer's order to another (faults planted on purpose). I audited it, ranked 5 root causes by severity, fixed them one at a time (same 41-question test after each), then fixed what a code review found: 46% → 100% correct in 3 separate runs, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. On 15 new questions never used for any change: 10/15 → 15/15. Deliverables: written audit, fixes as separate commits, before/after results. Built with Python, LangChain, OpenAI and Chroma.
 
 Shorter, if Upwork's description box is too small:
-A Python/LangChain support bot gave outdated policies, invented answers and showed one customer's order to another (faults staged on a demo store). I audited it, ranked 5 root causes, fixed them one at a time with the same 41-question test rerun after each, plus fixes from a code review: 46% → 100% correct, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. Deliverables: written audit, one fix per commit, before/after results.
+A Python/LangChain support bot gave outdated policies, invented answers and showed one customer's order to another (faults planted on purpose). I audited it, ranked 5 root causes, fixed them one at a time with the same 41-question test rerun after each, plus fixes from a code review: 46% → 100% correct, 1 → 0 privacy leaks, 0% → 100% of answers citing a source. Deliverables: written audit, one fix per commit, before/after results.
 
 ## Skills
 Python, LangChain, AI Chatbot, RAG, OpenAI API
 
 ## Content (upload in this order)
-1. 1-demo-video.mp4: the demo (1 min 54 s, 1920x1200, no audio). Caption on screen: "Staged faults on a demo bot."
+1. 1-video.mp4: the video (1 min 54 s, 1920x1200, no audio). Caption on screen: "Faults planted on purpose for this portfolio project."
 2. 2-cover-before-after.png: the before/after table; use it as the cover/thumbnail.
 3. 3-architecture-before-after.png: the architecture, before vs after, with each fault marked.
 4. 4-screenshot-broken-bot-leaks-order.png: the broken bot giving another customer's order and email to the wrong person.
